@@ -1,0 +1,191 @@
+/* genreWarp.css — GENRE WARP cartridge (radial stacked-area disc). */
+
+.gw {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: row; /* override .screen__view column */
+  min-height: 0;
+}
+
+.gw__main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 12px 8px 10px 14px;
+}
+.gw__head {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 2px;
+}
+.gw__title {
+  font-family: var(--font-display);
+  font-size: clamp(10px, 1.4vw, 13px);
+  color: var(--ink);
+  letter-spacing: 0.5px;
+}
+.gw__discwrap {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+.gw__discwrap svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.gw-band {
+  cursor: pointer;
+  stroke: var(--screen);
+  stroke-width: 0.6;
+  transition: opacity 0.2s ease;
+}
+.gw-band.is-faded {
+  opacity: 0.12;
+}
+.gw-ring {
+  fill: none;
+  stroke: var(--grid-line);
+  stroke-dasharray: 2 3;
+}
+.gw-ring-label {
+  font-family: var(--font-data);
+  font-size: 10px;
+  fill: var(--ink-soft);
+  text-anchor: middle;
+}
+.gw-spoke {
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-dasharray: 3 3;
+  pointer-events: none;
+}
+.gw-hub {
+  fill: var(--bg-console-dark);
+}
+.gw-hub-region {
+  font-family: var(--font-display);
+  font-size: 11px;
+  fill: #fff;
+  text-anchor: middle;
+}
+.gw-hub-total {
+  font-family: var(--font-data);
+  font-size: 12px;
+  font-weight: 600;
+  fill: rgba(255, 255, 255, 0.8);
+  text-anchor: middle;
+}
+.gw-yearlabel {
+  font-family: var(--font-data);
+  font-size: 9.5px;
+  fill: var(--ink-soft);
+  text-anchor: middle;
+}
+
+/* ---- side panel ---- */
+.gw__side {
+  flex: none;
+  width: clamp(190px, 30%, 260px);
+  background: var(--bg-screen-dim);
+  border-left: 2px solid var(--hairline);
+  padding: 14px 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+}
+.gw__legend {
+  display: block;
+}
+.gw__note {
+  font-size: 10px;
+  color: var(--ink-soft);
+  line-height: 1.4;
+}
+.gw__inset-title {
+  font-family: var(--font-data);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.gw__inset-swatch {
+  width: 11px;
+  height: 11px;
+  border-radius: 3px;
+  flex: none;
+}
+.gw__inset {
+  width: 100%;
+}
+.gw__inset svg {
+  display: block;
+  width: 100%;
+  height: 130px;
+}
+.gw-inset-line {
+  fill: none;
+  stroke-width: 2;
+}
+.gw-inset-area {
+  opacity: 0.18;
+}
+.gw-inset-axis text {
+  font-family: var(--font-data);
+  font-size: 9px;
+  fill: var(--ink-soft);
+}
+.gw-inset-axis path,
+.gw-inset-axis line {
+  stroke: var(--axis-line);
+}
+.gw__inset-stat {
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+.gw__inset-stat b {
+  color: var(--ink);
+}
+.gw__hint {
+  font-size: 11px;
+  color: var(--ink-soft);
+  font-style: italic;
+  margin-top: 4px;
+}
+.gw__clear {
+  align-self: flex-start;
+  font-family: var(--font-data);
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  color: #fff;
+  background: var(--bg-console);
+  border: none;
+  border-radius: 6px;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+.gw__clear:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+@media (max-width: 720px) {
+  .gw {
+    flex-direction: column;
+  }
+  .gw__side {
+    width: auto;
+    border-left: none;
+    border-top: 2px solid var(--hairline);
+    max-height: 40%;
+  }
+}

@@ -1,0 +1,445 @@
+/* ============================================================
+   CHARTRIDGE — shell.css
+   The synthwave arcade cabinet: scene → marquee → machine
+   (cartridge rail | CRT screen | high-scores rail) → control deck.
+   Scanlines + vignette live on the FRAME chrome only; the screen
+   interior stays crisp so chart data marks read cleanly.
+   ============================================================ */
+
+/* ---------- synthwave environment (fixed, behind everything) ---------- */
+.scene {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  background: radial-gradient(120% 80% at 50% 0%, #2a0a5e 0%, #16043a 45%, #08010f 100%);
+  pointer-events: none;
+}
+.scene__sun {
+  position: absolute;
+  top: 4%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: clamp(220px, 30vw, 360px);
+  height: clamp(220px, 30vw, 360px);
+  border-radius: 50%;
+  background: linear-gradient(#ffd23f, #ff6ec7 45%, #ff2a6d 80%);
+  box-shadow: 0 0 90px 30px rgba(255, 42, 109, 0.3);
+}
+.scene__sun::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: repeating-linear-gradient(transparent 0 14px, var(--void) 14px 19px);
+}
+.scene__floor {
+  position: absolute;
+  left: -25%;
+  right: -25%;
+  bottom: 0;
+  height: 42%;
+  background-image:
+    repeating-linear-gradient(90deg, rgba(5, 217, 232, 0.5) 0 2px, transparent 2px 80px),
+    repeating-linear-gradient(0deg, rgba(255, 42, 109, 0.5) 0 2px, transparent 2px 60px);
+  transform: perspective(420px) rotateX(62deg);
+  transform-origin: bottom center;
+  -webkit-mask-image: linear-gradient(transparent, #000 60%);
+  mask-image: linear-gradient(transparent, #000 60%);
+  animation: floor-scroll 6s linear infinite;
+}
+@keyframes floor-scroll {
+  from { background-position: 0 0, 0 0; }
+  to { background-position: 0 0, 0 60px; }
+}
+
+/* ---------- CRT overlays on the FRAME only ---------- */
+/* Vignette: radial so the centre (the screen) stays clear. */
+.vignette {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  pointer-events: none;
+  background: radial-gradient(120% 90% at 50% 45%, transparent 52%, rgba(0, 0, 0, 0.62) 100%);
+}
+/* Reusable faint scanline skin for chrome panels (never the screen). */
+.crt-lines {
+  position: relative;
+}
+.crt-lines::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: repeating-linear-gradient(rgba(0, 0, 0, 0) 0 2px, rgba(0, 0, 0, 0.16) 2px 4px);
+  mix-blend-mode: multiply;
+  z-index: 3;
+}
+
+/* ---------- cabinet wrapper ---------- */
+.cab {
+  position: relative;
+  z-index: 10;
+}
+.cab__inner {
+  position: relative;
+  z-index: 10;
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: clamp(14px, 2.4vw, 28px) clamp(12px, 2vw, 22px) 48px;
+}
+
+/* ---------- marquee header ---------- */
+.marquee {
+  border: 3px solid var(--magenta);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(45, 14, 88, 0.92), rgba(13, 4, 40, 0.92));
+  padding: clamp(12px, 1.8vw, 18px) clamp(16px, 2.4vw, 26px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  box-shadow: 0 0 18px rgba(255, 42, 109, 0.45), inset 0 0 22px rgba(185, 103, 255, 0.25);
+}
+.marquee__logo {
+  font-family: var(--font-display);
+  font-size: clamp(18px, 3vw, 30px);
+  letter-spacing: 2px;
+  color: #fff;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  text-shadow: 0 0 6px var(--cyan), 0 0 14px var(--cyan), 0 0 28px var(--magenta);
+}
+.marquee__logo:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 4px;
+}
+.marquee__tag {
+  font-family: var(--font-crt);
+  font-size: clamp(15px, 2vw, 22px);
+  color: var(--cyan);
+  letter-spacing: 2px;
+  margin-top: 6px;
+  text-shadow: 0 0 8px rgba(5, 217, 232, 0.7);
+}
+.marquee__credits {
+  font-family: var(--font-crt);
+  font-size: clamp(16px, 2vw, 24px);
+  color: var(--amber);
+  text-align: right;
+  line-height: 1.15;
+  text-shadow: 0 0 8px rgba(255, 210, 63, 0.7);
+  white-space: nowrap;
+}
+.marquee__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.7em;
+  color: var(--ink-soft);
+  letter-spacing: 1px;
+}
+.marquee__led {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--led-off);
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.3) inset;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+.marquee__led.is-on {
+  background: var(--led-on);
+  box-shadow: 0 0 8px 1px var(--led-on);
+}
+.blink {
+  animation: blink 1.1s steps(1) infinite;
+}
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
+/* ---------- machine: rail | screen | rail ---------- */
+.machine {
+  margin-top: clamp(12px, 1.8vw, 20px);
+  display: grid;
+  grid-template-columns: clamp(140px, 15vw, 172px) 1fr clamp(180px, 20vw, 238px);
+  gap: clamp(12px, 1.6vw, 18px);
+  align-items: stretch;
+}
+
+.rail {
+  background: linear-gradient(180deg, var(--panel), var(--bg-deep));
+  border: 2px solid rgba(185, 103, 255, 0.35);
+  border-radius: 12px;
+  padding: 14px 12px;
+  box-shadow: var(--shadow-inset);
+  min-width: 0;
+}
+.rail__title {
+  font-family: var(--font-display);
+  font-size: 10px;
+  color: var(--purple);
+  letter-spacing: 1px;
+  margin: 0 0 14px;
+  text-shadow: 0 0 6px rgba(185, 103, 255, 0.6);
+}
+
+/* cartridge slots (left rail) — clickable nav */
+.slot-cart {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  border: 2px solid rgba(138, 127, 184, 0.4);
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 11px;
+  background: rgba(8, 1, 15, 0.5);
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  font-family: var(--font-crt);
+}
+.slot-cart__chip {
+  width: 24px;
+  height: 28px;
+  border-radius: 4px 4px 2px 2px;
+  flex: 0 0 auto;
+  box-shadow: 0 0 8px currentColor;
+}
+.slot-cart__name {
+  font-size: 19px;
+  color: var(--dim, #8a7fb8);
+  letter-spacing: 1px;
+  line-height: 1.05;
+}
+.slot-cart:hover {
+  border-color: rgba(5, 217, 232, 0.6);
+}
+.slot-cart.is-on {
+  border-color: var(--cyan);
+  box-shadow: 0 0 16px rgba(5, 217, 232, 0.55);
+  background: rgba(5, 217, 232, 0.08);
+}
+.slot-cart.is-on .slot-cart__name {
+  color: #fff;
+  text-shadow: 0 0 8px var(--cyan);
+}
+.slot-cart:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 2px;
+}
+
+/* high-scores leaderboard (right rail) */
+.rail--hs .rail__title {
+  color: var(--amber);
+  text-shadow: 0 0 6px rgba(255, 210, 63, 0.6);
+}
+.lb-summary {
+  display: none;
+  font-family: var(--font-crt);
+  font-size: 15px;
+  letter-spacing: 0.5px;
+  color: var(--amber);
+  text-shadow: 0 0 6px rgba(255, 210, 63, 0.4);
+  margin: -6px 0 10px;
+}
+.lb-summary.is-on {
+  display: block;
+}
+.leaderboard {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.leaderboard li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-crt);
+  font-size: 20px;
+  line-height: 1.1;
+  margin-bottom: 9px;
+}
+.leaderboard .lb-rank {
+  color: var(--magenta);
+  width: 20px;
+  flex: 0 0 auto;
+}
+.leaderboard .lb-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.leaderboard .lb-title {
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.leaderboard .lb-sub {
+  font-size: 14px;
+  color: var(--ink-soft);
+  line-height: 1;
+}
+.leaderboard .lb-score {
+  color: var(--green);
+  flex: 0 0 auto;
+  text-shadow: 0 0 6px rgba(0, 245, 160, 0.6);
+}
+
+/* ---------- CRT screen (the mount surface) ---------- */
+.screen-frame {
+  border: 3px solid #2a1a52;
+  border-radius: var(--radius-screen);
+  background: var(--screen);
+  padding: var(--bezel);
+  box-shadow: 0 0 0 5px #0c0820, 0 0 40px rgba(5, 217, 232, 0.18),
+    inset 0 0 70px rgba(5, 217, 232, 0.05);
+}
+.screen {
+  position: relative;
+  background: var(--screen);
+  border-radius: 8px;
+  min-height: clamp(380px, 56vh, 580px);
+  height: 100%;
+  overflow: hidden;
+  /* faint edge glow only — NO scanlines over the plotting area */
+  box-shadow: inset 0 0 40px rgba(5, 217, 232, 0.06);
+}
+.screen__view {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- arcade control deck ---------- */
+.deck {
+  margin-top: clamp(12px, 1.8vw, 20px);
+  border: 2px solid rgba(5, 217, 232, 0.3);
+  border-radius: 14px;
+  background: linear-gradient(180deg, var(--panel-2), var(--bg-deep));
+  padding: clamp(12px, 1.6vw, 18px) clamp(14px, 2vw, 22px);
+  display: grid;
+  grid-template-columns: auto auto 1fr auto;
+  align-items: center;
+  gap: clamp(14px, 2vw, 26px);
+  box-shadow: var(--shadow-inset);
+}
+.deck__group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.deck__label {
+  font-family: var(--font-crt);
+  font-size: 16px;
+  color: var(--ink-soft);
+  letter-spacing: 1px;
+}
+
+/* decorative joystick (pure flavor) */
+.stick {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  flex: 0 0 auto;
+}
+.stick__base {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 48px;
+  height: 18px;
+  border-radius: 50%;
+  background: #1a0f33;
+  box-shadow: inset 0 0 8px #000;
+}
+.stick__shaft {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 7px;
+  height: 26px;
+  background: #3a2a5e;
+  border-radius: 4px;
+}
+.stick__ball {
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ff9ec9, var(--magenta));
+  box-shadow: 0 0 14px rgba(255, 42, 109, 0.7);
+}
+
+/* the active filter readout */
+.readout {
+  justify-self: end;
+  font-family: var(--font-crt);
+  font-size: 18px;
+  letter-spacing: 1px;
+  color: var(--ink-soft);
+  text-align: right;
+  white-space: nowrap;
+}
+.readout b {
+  color: var(--amber);
+  text-shadow: 0 0 6px rgba(255, 210, 63, 0.5);
+}
+
+/* ---------- colorblind toggle (in the marquee) ---------- */
+.console__cb {
+  font-family: var(--font-crt);
+  font-size: 16px;
+  letter-spacing: 0.5px;
+  color: var(--ink-soft);
+  background: rgba(8, 1, 15, 0.6);
+  border: 1px solid rgba(5, 217, 232, 0.35);
+  border-radius: 7px;
+  padding: 3px 10px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+.console__cb:hover {
+  color: #fff;
+}
+.console__cb.is-on {
+  background: var(--green);
+  color: #06210f;
+  border-color: var(--green);
+  box-shadow: 0 0 12px rgba(0, 245, 160, 0.6);
+}
+.console__cb:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 2px;
+}
+
+/* ---------- responsive ---------- */
+@media (max-width: 900px) {
+  .machine {
+    grid-template-columns: 1fr;
+  }
+  .rail {
+    display: none; /* reclaim space for the screen on small viewports */
+  }
+  .deck {
+    grid-template-columns: 1fr;
+    justify-items: stretch;
+  }
+  .readout {
+    justify-self: stretch;
+    text-align: center;
+  }
+}

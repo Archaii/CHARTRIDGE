@@ -1,0 +1,81 @@
+/* boot.css — the power-on screen. One-time intro only. */
+
+.boot {
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+  padding: 32px;
+  text-align: center;
+  color: var(--ink);
+  animation: boot-flicker 0.5s ease both;
+}
+
+.boot__logo {
+  font-family: var(--font-display);
+  font-size: clamp(18px, 4.2vw, 40px);
+  color: #fff;
+  letter-spacing: 2px;
+  text-shadow: 0 0 8px var(--cyan), 0 0 18px var(--cyan), 0 0 34px var(--magenta);
+}
+
+.boot__tagline {
+  font-family: var(--font-crt);
+  font-size: 18px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--cyan);
+  text-shadow: 0 0 8px rgba(5, 217, 232, 0.6);
+}
+
+.boot__status {
+  font-family: var(--font-crt);
+  font-size: 18px;
+  letter-spacing: 1px;
+  color: var(--ink);
+  min-height: 1.2em;
+}
+
+.boot__status::after {
+  content: "";
+  animation: boot-ellipsis 1s steps(4, end) infinite;
+}
+
+.boot__bar {
+  width: min(78%, 380px);
+  height: 14px;
+  background: #150a33;
+  border-radius: 7px;
+  overflow: hidden;
+  box-shadow: inset 0 0 6px #000;
+}
+
+.boot__bar-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--cyan), var(--magenta));
+  border-radius: 7px;
+  box-shadow: 0 0 12px rgba(255, 42, 109, 0.6);
+  transition: width 0.25s ease;
+}
+
+.boot__counts {
+  font-family: var(--font-crt);
+  font-size: 15px;
+  letter-spacing: 0.5px;
+  color: var(--amber);
+  text-shadow: 0 0 6px rgba(255, 210, 63, 0.5);
+}
+
+@keyframes boot-flicker {
+  0% { opacity: 0; }
+  40% { opacity: 0.4; }
+  60% { opacity: 0.9; }
+  100% { opacity: 1; }
+}
+
+@keyframes boot-ellipsis {
+  0% { content: ""; }
+  25% { content: "."; }
+  50% { content: ".."; }
+  75% { content: "..."; }
+}

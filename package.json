@@ -1,0 +1,18 @@
+{
+  "name": "chartridge",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "CHARTRIDGE — a retro handheld-console OS for exploring video game sales data. Insert a cartridge. Play the data.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^5.4.0"
+  },
+  "dependencies": {
+    "d3": "^7.9.0"
+  }
+}

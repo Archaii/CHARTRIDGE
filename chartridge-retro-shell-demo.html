@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CHARTRIDGE — Retro Shell Direction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#08010f; --bg-deep:#16043a; --panel:#1d0b46; --panel-2:#250e58;
+    --screen:#070611; --screen-glow:#0d0b1f;
+    --magenta:#ff2a6d; --cyan:#05d9e8; --purple:#b967ff; --pink:#ff6ec7;
+    --amber:#ffd23f; --green:#00f5a0; --ink:#e9e4ff; --dim:#8a7fb8;
+    /* genre families, tuned to glow on dark */
+    --fam-action:#ff6b35; --fam-compete:#05d9e8; --fam-systems:#00f5a0;
+    --fam-story:#c77dff; --fam-social:#ffd23f; --fam-online:#ff2a6d;
+    --pixel:'Press Start 2P',monospace; --crt:'VT323',monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:var(--void);
+    color:var(--ink);
+    font-family:var(--crt);
+    overflow-x:hidden;
+    min-height:100vh;
+    position:relative;
+  }
+  /* ---- synthwave environment: sun + perspective grid floor ---- */
+  .scene{position:fixed;inset:0;z-index:0;overflow:hidden;
+    background:radial-gradient(120% 80% at 50% 0%, #2a0a5e 0%, #16043a 45%, #08010f 100%);}
+  .sun{position:absolute;top:6%;left:50%;transform:translateX(-50%);
+    width:340px;height:340px;border-radius:50%;
+    background:linear-gradient(#ffd23f,#ff6ec7 45%,#ff2a6d 80%);
+    box-shadow:0 0 90px 30px rgba(255,42,109,.35);}
+  .sun::after{content:"";position:absolute;inset:0;border-radius:50%;
+    background:repeating-linear-gradient(transparent 0 14px, var(--void) 14px 19px);}
+  .floor{position:absolute;left:-25%;right:-25%;bottom:0;height:46%;
+    background-image:
+      linear-gradient(rgba(5,217,232,.0),rgba(5,217,232,.0)),
+      repeating-linear-gradient(90deg, rgba(5,217,232,.55) 0 2px, transparent 2px 80px),
+      repeating-linear-gradient(0deg, rgba(255,42,109,.55) 0 2px, transparent 2px 60px);
+    transform:perspective(420px) rotateX(62deg);transform-origin:bottom center;
+    -webkit-mask-image:linear-gradient(transparent, #000 60%);mask-image:linear-gradient(transparent, #000 60%);
+    animation:scroll 6s linear infinite;}
+  @keyframes scroll{from{background-position:0 0,0 0,0 0}to{background-position:0 0,0 0,0 60px}}
+  /* ---- CRT scanlines + vignette over everything ---- */
+  .crtfx{position:fixed;inset:0;z-index:90;pointer-events:none;
+    background:repeating-linear-gradient(rgba(0,0,0,0) 0 2px, rgba(0,0,0,.18) 2px 4px);
+    mix-blend-mode:multiply;}
+  .vignette{position:fixed;inset:0;z-index:91;pointer-events:none;
+    box-shadow:inset 0 0 220px 60px rgba(0,0,0,.7);}
+
+  .wrap{position:relative;z-index:10;max-width:1180px;margin:0 auto;padding:28px 22px 60px;}
+
+  /* ---- marquee header ---- */
+  .marquee{position:relative;border:3px solid var(--magenta);border-radius:14px;
+    background:linear-gradient(180deg, rgba(45,14,88,.9), rgba(13,4,40,.9));
+    padding:18px 26px;display:flex;align-items:center;justify-content:space-between;
+    box-shadow:0 0 18px rgba(255,42,109,.45), inset 0 0 22px rgba(185,103,255,.25);}
+  .logo{font-family:var(--pixel);font-size:30px;letter-spacing:2px;color:#fff;
+    text-shadow:0 0 6px var(--cyan),0 0 14px var(--cyan),0 0 28px var(--magenta);}
+  .tag{font-size:22px;color:var(--cyan);letter-spacing:2px;margin-top:8px;
+    text-shadow:0 0 8px rgba(5,217,232,.7);}
+  .credits{font-family:var(--crt);font-size:24px;color:var(--amber);text-align:right;
+    text-shadow:0 0 8px rgba(255,210,63,.7);}
+  .credits .blink{animation:blink 1s steps(1) infinite;}
+  @keyframes blink{50%{opacity:0}}
+
+  /* ---- machine: rail | screen | rail ---- */
+  .machine{margin-top:22px;display:grid;grid-template-columns:160px 1fr 230px;gap:18px;align-items:stretch;}
+  .rail{background:linear-gradient(180deg,var(--panel),var(--bg-deep));border:2px solid rgba(185,103,255,.35);
+    border-radius:12px;padding:14px;box-shadow:inset 0 0 20px rgba(0,0,0,.6);}
+  .rail h3{font-family:var(--pixel);font-size:10px;color:var(--purple);letter-spacing:1px;
+    margin-bottom:14px;text-shadow:0 0 6px rgba(185,103,255,.6);}
+
+  /* cartridge slots (left) */
+  .cart{display:flex;align-items:center;gap:10px;border:2px solid rgba(138,127,184,.4);
+    border-radius:8px;padding:10px;margin-bottom:12px;background:rgba(8,1,15,.5);transition:.2s;}
+  .cart .chip{width:26px;height:30px;border-radius:4px 4px 2px 2px;flex:0 0 auto;}
+  .cart .nm{font-size:20px;color:var(--dim);letter-spacing:1px;line-height:1;}
+  .cart.on{border-color:var(--cyan);box-shadow:0 0 16px rgba(5,217,232,.55);background:rgba(5,217,232,.08);}
+  .cart.on .nm{color:#fff;text-shadow:0 0 8px var(--cyan);}
+
+  /* high score leaderboard (right) */
+  .hs h3{color:var(--amber);text-shadow:0 0 6px rgba(255,210,63,.6);}
+  .row{display:flex;align-items:baseline;gap:8px;font-size:21px;margin-bottom:11px;line-height:1.1;}
+  .row .rk{color:var(--magenta);width:22px;}
+  .row .ti{color:var(--ink);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .row .sc{color:var(--green);text-shadow:0 0 6px rgba(0,245,160,.6);}
+
+  /* ---- CRT screen ---- */
+  .screen{position:relative;border:3px solid #2a1a52;border-radius:16px;
+    background:var(--screen);overflow:hidden;
+    box-shadow:0 0 0 6px #0c0820, 0 0 40px rgba(5,217,232,.18), inset 0 0 70px rgba(5,217,232,.06);padding:18px 20px;}
+  .screen::before{content:"";position:absolute;inset:0;pointer-events:none;
+    background:repeating-linear-gradient(rgba(255,255,255,0) 0 2px, rgba(0,0,0,.22) 2px 4px);}
+  .scr-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
+  .scr-title{font-family:var(--pixel);font-size:15px;color:#fff;letter-spacing:1px;
+    text-shadow:0 0 6px var(--magenta),0 0 16px var(--magenta);}
+  .legend{font-size:19px;display:flex;gap:14px;flex-wrap:wrap;justify-content:flex-end;}
+  .legend span{display:inline-flex;align-items:center;gap:6px;color:var(--dim);}
+  .legend i{width:13px;height:13px;border-radius:3px;display:inline-block;}
+  .scr-sub{font-size:19px;color:var(--cyan);margin:2px 0 8px;letter-spacing:1px;}
+  svg{display:block;width:100%;height:300px;}
+  .axis{font-size:17px;fill:var(--dim);font-family:var(--crt);}
+  .scr-foot{display:flex;justify-content:space-between;align-items:center;margin-top:6px;
+    font-size:20px;color:var(--dim);letter-spacing:1px;}
+  .scr-foot b{color:var(--amber);}
+
+  /* ---- arcade control deck ---- */
+  .deck{margin-top:20px;border:2px solid rgba(5,217,232,.3);border-radius:14px;
+    background:linear-gradient(180deg,var(--panel-2),var(--bg-deep));padding:18px 22px;
+    display:flex;align-items:center;gap:26px;box-shadow:inset 0 0 26px rgba(0,0,0,.55);}
+  .stick{position:relative;width:64px;height:64px;flex:0 0 auto;}
+  .stick .ball{position:absolute;top:-6px;left:50%;transform:translateX(-50%);
+    width:30px;height:30px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ff9ec9,var(--magenta));
+    box-shadow:0 0 14px rgba(255,42,109,.7);}
+  .stick .shaft{position:absolute;top:18px;left:50%;transform:translateX(-50%);width:8px;height:30px;background:#3a2a5e;border-radius:4px;}
+  .stick .base{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:54px;height:20px;border-radius:50%;
+    background:#1a0f33;box-shadow:inset 0 0 8px #000;}
+  .deck-label{font-size:18px;color:var(--dim);letter-spacing:1px;}
+  .btns{display:flex;gap:14px;}
+  .btn{width:54px;height:54px;border-radius:50%;border:2px solid rgba(0,0,0,.4);
+    font-family:var(--crt);font-size:20px;color:#08010f;display:flex;align-items:center;justify-content:center;
+    cursor:pointer;text-shadow:0 1px 0 rgba(255,255,255,.3);}
+  .b-na{background:radial-gradient(circle at 35% 30%,#7fe9f2,var(--cyan));box-shadow:0 0 14px rgba(5,217,232,.6),0 5px 0 #044;}
+  .b-jp{background:radial-gradient(circle at 35% 30%,#ff9ec9,var(--magenta));box-shadow:0 0 14px rgba(255,42,109,.6),0 5px 0 #611;}
+  .b-pal{background:radial-gradient(circle at 35% 30%,#d9b3ff,var(--purple));box-shadow:0 0 14px rgba(185,103,255,.6),0 5px 0 #418;}
+  .b-oth{background:radial-gradient(circle at 35% 30%,#9affd8,var(--green));box-shadow:0 0 14px rgba(0,245,160,.6),0 5px 0 #064;}
+  .b-tot{background:radial-gradient(circle at 35% 30%,#ffe89a,var(--amber));box-shadow:0 0 14px rgba(255,210,63,.6),0 5px 0 #641;}
+  .scrub{flex:1;display:flex;align-items:center;gap:12px;}
+  .track{flex:1;height:8px;border-radius:5px;background:#1a0f33;position:relative;box-shadow:inset 0 0 6px #000;}
+  .fill{position:absolute;left:0;top:0;bottom:0;width:100%;border-radius:5px;background:linear-gradient(90deg,var(--cyan),var(--magenta));box-shadow:0 0 10px rgba(255,42,109,.5);}
+  .knob{position:absolute;right:-7px;top:50%;transform:translateY(-50%);width:20px;height:20px;border-radius:50%;
+    background:#fff;box-shadow:0 0 12px var(--cyan);}
+  .yr{font-family:var(--pixel);font-size:12px;color:var(--amber);text-shadow:0 0 6px rgba(255,210,63,.6);white-space:nowrap;}
+
+  @media(max-width:880px){.machine{grid-template-columns:1fr}.rail{order:2}}
+</style>
+</head>
+<body>
+  <div class="scene"><div class="sun"></div><div class="floor"></div></div>
+  <div class="crtfx"></div><div class="vignette"></div>
+
+  <div class="wrap">
+    <!-- MARQUEE -->
+    <div class="marquee">
+      <div>
+        <div class="logo">CHARTRIDGE</div>
+        <div class="tag">INSERT A CARTRIDGE. PLAY THE DATA.</div>
+      </div>
+      <div class="credits">CREDITS&nbsp;01<br><span class="blink">▶ PRESS START</span></div>
+    </div>
+
+    <!-- MACHINE -->
+    <div class="machine">
+      <!-- LEFT: cartridge slot -->
+      <div class="rail">
+        <h3>CARTRIDGE</h3>
+        <div class="cart on"><div class="chip" style="background:var(--fam-compete)"></div><div class="nm">CONSOLE<br>WARS</div></div>
+        <div class="cart"><div class="chip" style="background:var(--fam-action)"></div><div class="nm">HIGH<br>SCORE</div></div>
+        <div class="cart"><div class="chip" style="background:var(--fam-story)"></div><div class="nm">GENRE<br>WARP</div></div>
+      </div>
+
+      <!-- CENTER: CRT screen -->
+      <div class="screen">
+        <div class="scr-top">
+          <div class="scr-title">CONSOLE WARS</div>
+          <div class="legend">
+            <span><i style="background:var(--fam-action)"></i>Action</span>
+            <span><i style="background:var(--fam-compete)"></i>Compete</span>
+            <span><i style="background:var(--fam-systems)"></i>Systems</span>
+            <span><i style="background:var(--fam-story)"></i>Story</span>
+          </div>
+        </div>
+        <div class="scr-sub">PLATFORM LIFECYCLES — NEON ON CRT</div>
+        <svg viewBox="0 0 700 300" preserveAspectRatio="none">
+          <defs>
+            <filter id="g"><feGaussianBlur stdDeviation="2.2"/></filter>
+          </defs>
+          <!-- baseline grid -->
+          <g stroke="#1c2540" stroke-width="1">
+            <line x1="40" y1="40" x2="40" y2="270"/><line x1="40" y1="270" x2="690" y2="270"/>
+            <line x1="200" y1="40" x2="200" y2="270" opacity=".5"/><line x1="360" y1="40" x2="360" y2="270" opacity=".5"/>
+            <line x1="520" y1="40" x2="520" y2="270" opacity=".5"/>
+          </g>
+          <!-- stylized neon ridges (suggestion of the real chart) -->
+          <g filter="url(#g)" opacity=".95">
+            <path d="M40,210 C120,150 180,120 260,205 C320,255 360,235 420,250 C500,262 600,258 690,255 L690,270 L40,270 Z" fill="var(--fam-compete)" opacity=".55"/>
+            <path d="M260,205 C300,150 340,120 400,160 C450,195 510,210 560,200 C610,192 660,205 690,210 L690,270 L260,270 Z" fill="var(--fam-action)" opacity=".55"/>
+            <path d="M420,250 C470,220 520,205 580,215 C630,223 670,230 690,232 L690,270 L420,270 Z" fill="var(--fam-systems)" opacity=".55"/>
+            <path d="M520,260 C560,240 610,238 690,243 L690,270 L520,270 Z" fill="var(--fam-story)" opacity=".55"/>
+          </g>
+          <!-- neon stroke highlights -->
+          <path d="M40,210 C120,150 180,120 260,205 C320,255 360,235 420,250 C500,262 600,258 690,255" fill="none" stroke="var(--cyan)" stroke-width="2"/>
+          <path d="M260,205 C300,150 340,120 400,160 C450,195 510,210 560,200 C610,192 660,205 690,210" fill="none" stroke="var(--fam-action)" stroke-width="2"/>
+          <line x1="600" y1="40" x2="600" y2="270" stroke="var(--magenta)" stroke-width="2" stroke-dasharray="5 5"/>
+          <text x="606" y="52" class="axis" fill="var(--magenta)">2017</text>
+          <text x="44" y="285" class="axis">1995</text><text x="196" y="285" class="axis">2000</text>
+          <text x="356" y="285" class="axis">2005</text><text x="516" y="285" class="axis">2010</text>
+        </svg>
+        <div class="scr-foot"><span>PS2 · X360 · PS3 · WII · PS4</span><span><b>17,764</b> TITLES · 1995–2017</span></div>
+      </div>
+
+      <!-- RIGHT: high scores -->
+      <div class="rail hs">
+        <h3>HIGH SCORES</h3>
+        <div class="row"><span class="rk">1</span><span class="ti">COD: WWII</span><span class="sc">13.0M</span></div>
+        <div class="row"><span class="rk">2</span><span class="ti">FIFA 18</span><span class="sc">12.0M</span></div>
+        <div class="row"><span class="rk">3</span><span class="ti">COD: WWII</span><span class="sc">6.2M</span></div>
+        <div class="row"><span class="rk">4</span><span class="ti">Crash N.Sane</span><span class="sc">4.8M</span></div>
+        <div class="row"><span class="rk">5</span><span class="ti">SW Battlefr. II</span><span class="sc">4.5M</span></div>
+        <div class="row"><span class="rk">6</span><span class="ti">Destiny 2</span><span class="sc">4.1M</span></div>
+        <div class="row"><span class="rk">7</span><span class="ti">AC Origins</span><span class="sc">4.1M</span></div>
+        <div class="row"><span class="rk">8</span><span class="ti">NBA 2K18</span><span class="sc">3.3M</span></div>
+      </div>
+    </div>
+
+    <!-- CONTROL DECK -->
+    <div class="deck">
+      <div style="text-align:center">
+        <div class="stick"><div class="ball"></div><div class="shaft"></div><div class="base"></div></div>
+        <div class="deck-label" style="margin-top:6px">REGION</div>
+      </div>
+      <div class="btns">
+        <div class="btn b-na">NA</div><div class="btn b-jp">JP</div><div class="btn b-pal">PAL</div>
+        <div class="btn b-oth">OTH</div><div class="btn b-tot">ALL</div>
+      </div>
+      <div class="scrub">
+        <span class="deck-label">YEAR</span>
+        <div class="track"><div class="fill"></div><div class="knob"></div></div>
+        <span class="yr">1995–2017</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

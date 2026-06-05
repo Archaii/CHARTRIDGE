@@ -1,0 +1,61 @@
+/* regionToggle.css — region control as round glowing arcade buttons.
+   Each region has its own neon color; the active one lights fully,
+   the rest sit dim until hovered. */
+
+.region {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.region__btn {
+  position: relative;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 0, 0, 0.45);
+  font-family: var(--font-crt);
+  font-size: 17px;
+  color: #08010f;
+  cursor: pointer;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3);
+  transition: transform 0.1s ease, filter 0.15s ease, box-shadow 0.15s ease;
+  filter: saturate(0.6) brightness(0.62);
+}
+.region__btn:hover {
+  filter: saturate(0.9) brightness(0.85);
+  transform: translateY(-1px);
+}
+.region__btn.is-active {
+  filter: none;
+  transform: translateY(1px);
+}
+.region__btn:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 2px;
+}
+
+/* per-region neon caps */
+.region__btn[data-region="na"] {
+  background: radial-gradient(circle at 35% 30%, #7fe9f2, var(--cyan));
+  box-shadow: 0 0 14px rgba(5, 217, 232, 0.6), 0 5px 0 #044;
+}
+.region__btn[data-region="jp"] {
+  background: radial-gradient(circle at 35% 30%, #ff9ec9, var(--magenta));
+  box-shadow: 0 0 14px rgba(255, 42, 109, 0.6), 0 5px 0 #611;
+}
+.region__btn[data-region="pal"] {
+  background: radial-gradient(circle at 35% 30%, #d9b3ff, var(--purple));
+  box-shadow: 0 0 14px rgba(185, 103, 255, 0.6), 0 5px 0 #418;
+}
+.region__btn[data-region="other"] {
+  background: radial-gradient(circle at 35% 30%, #9affd8, var(--green));
+  box-shadow: 0 0 14px rgba(0, 245, 160, 0.6), 0 5px 0 #064;
+}
+.region__btn[data-region="total"] {
+  background: radial-gradient(circle at 35% 30%, #ffe89a, var(--amber));
+  box-shadow: 0 0 14px rgba(255, 210, 63, 0.6), 0 5px 0 #641;
+  width: auto;
+  border-radius: 23px;
+  padding: 0 12px;
+}

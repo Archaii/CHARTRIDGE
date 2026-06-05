@@ -1,0 +1,59 @@
+/* legend.css — the 6-family genre key, also a click-to-filter control. */
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  align-items: center;
+}
+
+.legend__title {
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-right: 2px;
+}
+
+/* each item is a filter button */
+.legend__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-data);
+  font-size: 11px;
+  color: var(--ink);
+  background: none;
+  border: none;
+  padding: 2px 5px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: opacity 0.15s ease, background 0.15s ease;
+}
+.legend__item:hover {
+  background: rgba(233, 228, 255, 0.08);
+  color: #fff;
+}
+.legend__item:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 1px;
+}
+.legend__item.is-active {
+  color: #fff;
+  background: rgba(233, 228, 255, 0.12);
+}
+.legend__item.is-dim {
+  opacity: 0.4;
+}
+
+.legend__swatch {
+  width: 11px;
+  height: 11px;
+  border-radius: 3px;
+  flex: none;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+.legend__item.is-active .legend__swatch {
+  box-shadow: 0 0 8px currentColor, 0 0 2px #fff inset;
+  transform: scale(1.18);
+}

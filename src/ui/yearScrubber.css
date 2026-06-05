@@ -1,0 +1,130 @@
+/* yearScrubber.css — the YEAR control as an arcade slider with a
+   chunky glowing knob. Two native range inputs overlap on one rail
+   (accessible: arrow keys, screen readers) over a neon fill. */
+
+.scrubber {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+}
+
+.scrubber__play {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border: 2px solid rgba(0, 0, 0, 0.4);
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ff9ec9, var(--magenta));
+  color: #08010f;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 0 14px rgba(255, 42, 109, 0.6), 0 4px 0 #611;
+  transition: transform 0.1s ease;
+}
+.scrubber__play:hover {
+  transform: translateY(-1px);
+}
+.scrubber__play:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 2px;
+}
+
+.scrubber__body {
+  flex: 1;
+  min-width: 120px;
+}
+
+.scrubber__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 4px;
+}
+.scrubber__label {
+  font-family: var(--font-crt);
+  font-size: 16px;
+  letter-spacing: 1px;
+  color: var(--ink-soft);
+}
+.scrubber__value {
+  font-family: var(--font-display);
+  font-size: 12px;
+  color: var(--amber);
+  text-shadow: 0 0 6px rgba(255, 210, 63, 0.6);
+}
+
+/* rail + the two overlapping range inputs */
+.scrubber__track {
+  position: relative;
+  height: 24px;
+}
+.scrubber__rail {
+  position: absolute;
+  top: 9px;
+  left: 0;
+  right: 0;
+  height: 8px;
+  border-radius: 5px;
+  background: #150a33;
+  box-shadow: inset 0 0 6px #000;
+}
+.scrubber__fill {
+  position: absolute;
+  top: 9px;
+  height: 8px;
+  border-radius: 5px;
+  background: linear-gradient(90deg, var(--cyan), var(--magenta));
+  box-shadow: 0 0 10px rgba(255, 42, 109, 0.5);
+}
+/* glide the fill while the playhead is sweeping (set per-frame in JS) */
+.scrubber.is-playing .scrubber__fill {
+  transition: left var(--scrub-dur, 0s) linear, width var(--scrub-dur, 0s) linear;
+}
+
+.scrubber__input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 24px;
+  margin: 0;
+  background: none;
+  -webkit-appearance: none;
+  appearance: none;
+  pointer-events: none; /* only the knobs are grabbable */
+}
+.scrubber__input:focus-visible {
+  outline: none;
+}
+/* chunky glowing knobs */
+.scrubber__input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  pointer-events: auto;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff, #cfeaff);
+  border: 2px solid var(--cyan);
+  box-shadow: 0 0 12px var(--cyan);
+  cursor: grab;
+}
+.scrubber__input:focus-visible::-webkit-slider-thumb {
+  outline: 3px solid #fff;
+  outline-offset: 1px;
+}
+.scrubber__input::-moz-range-thumb {
+  pointer-events: auto;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid var(--cyan);
+  box-shadow: 0 0 12px var(--cyan);
+  cursor: grab;
+}
+.scrubber__input::-moz-range-track {
+  background: none;
+}

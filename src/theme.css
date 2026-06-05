@@ -1,0 +1,108 @@
+/* ============================================================
+   CHARTRIDGE — theme.css
+   Dark synthwave-arcade theme. All visual constants live here.
+   Headings use the pixel font; readouts/leaderboard use the CRT
+   font (VT323); dense chart data text stays in Inter for legibility.
+   NOTE: the six --fam-* hues are mirrored in ui/palette.js (canvas
+   can't read CSS vars) — keep the two in sync.
+   ============================================================ */
+
+:root {
+  /* --- synthwave environment --- */
+  --void: #08010f;
+  --bg-deep: #16043a;
+  --panel: #1d0b46;
+  --panel-2: #250e58;
+
+  /* --- the CRT screen (replaces the old cream) --- */
+  --screen: #070611;
+  --screen-glow: #0d0b1f;
+  --bg-screen: #070611; /* tokens kept for the cartridges */
+  --bg-screen-dim: #120a2a;
+  --bg-console: #1d0b46;
+  --bg-console-dark: #0f0630;
+
+  /* --- neon accents --- */
+  --magenta: #ff2a6d;
+  --cyan: #05d9e8;
+  --purple: #b967ff;
+  --pink: #ff6ec7;
+  --amber: #ffd23f;
+  --green: #00f5a0;
+  --accent: #ff2a6d; /* magenta = the coin/title accent */
+  --accent-dim: #c61e54;
+  --accent-2: #05d9e8;
+
+  /* --- text --- */
+  --ink: #e9e4ff; /* light ink on the dark CRT */
+  --ink-soft: #8a7fb8;
+
+  /* --- chart hairlines on dark (light, translucent) --- */
+  --grid-line: rgba(233, 228, 255, 0.12);
+  --axis-line: rgba(233, 228, 255, 0.22);
+  --hairline: rgba(233, 228, 255, 0.1);
+
+  /* --- genre families, tuned to glow on dark --- */
+  --fam-action: #ff6b35; /* Action-driven  — neon orange */
+  --fam-compete: #05d9e8; /* Competitive    — cyan */
+  --fam-systems: #00f5a0; /* Systems        — neon green */
+  --fam-story: #c77dff; /* Story          — neon purple */
+  --fam-social: #ffd23f; /* Social/Casual  — amber */
+  --fam-online: #ff2a6d; /* Online (MMO)   — magenta */
+
+  /* --- typography --- */
+  --font-display: "Press Start 2P", monospace; /* headings ONLY */
+  --font-crt: "VT323", monospace; /* readouts, leaderboard, marquee */
+  --font-data: "Inter", system-ui, sans-serif; /* ticks, tooltips ≥12px */
+
+  /* --- layout --- */
+  --bezel: 12px;
+  --radius-console: 16px;
+  --radius-screen: 14px;
+
+  /* --- elevation / glow --- */
+  --shadow-console: 0 24px 60px rgba(5, 0, 20, 0.7);
+  --shadow-inset: inset 0 0 22px rgba(0, 0, 0, 0.55);
+  --glow-cyan: 0 0 18px rgba(5, 217, 232, 0.45);
+  --glow-magenta: 0 0 18px rgba(255, 42, 109, 0.5);
+
+  /* --- status LED --- */
+  --led-on: #00f5a0;
+  --led-off: #2c4a32;
+}
+
+/* ----------------- reset / base ----------------- */
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: var(--font-crt);
+  color: var(--ink);
+  background: var(--void);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+#app {
+  position: relative;
+  min-height: 100vh;
+}
+
+/* Honor reduced-motion globally (boot, floor scroll, transitions). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

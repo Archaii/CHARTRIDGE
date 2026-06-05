@@ -1,0 +1,160 @@
+/* highScore.css — HIGH SCORE cartridge (stream + canvas scatter). */
+
+.hs {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 12px 14px 8px;
+  gap: 4px;
+}
+
+.hs__head {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.hs__title {
+  font-family: var(--font-display);
+  font-size: clamp(10px, 1.4vw, 13px);
+  color: var(--ink);
+  letter-spacing: 0.5px;
+}
+
+.hs__paneltag {
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin: 2px 0 0 2px;
+}
+
+/* top streamgraph */
+.hs__stream {
+  flex: 0.82;
+  min-height: 0;
+  position: relative;
+}
+.hs__stream svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.hs-band {
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+.hs-band.is-faded {
+  opacity: 0.15;
+}
+.hs-axis text {
+  font-family: var(--font-data);
+  font-size: 10px;
+  fill: var(--ink-soft);
+}
+.hs-axis path,
+.hs-axis line {
+  stroke: var(--axis-line);
+}
+/* brush styling */
+.hs-brush .selection {
+  fill: rgba(5, 217, 232, 0.12);
+  stroke: var(--cyan);
+  stroke-width: 1.5;
+  stroke-dasharray: 3 2;
+}
+.hs-brush .handle {
+  fill: var(--accent);
+}
+
+/* bottom scatter */
+.hs__scatter {
+  flex: 1.05;
+  min-height: 0;
+  position: relative;
+}
+.hs__scatter canvas,
+.hs__scatter svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.hs__scatter svg {
+  pointer-events: none;
+}
+.hs-axis-label {
+  font-family: var(--font-data);
+  font-size: 10px;
+  fill: var(--ink-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.hs-quad {
+  stroke: var(--grid-line);
+  stroke-dasharray: 2 3;
+}
+.hs-quad-label {
+  font-family: var(--font-data);
+  font-size: 9.5px;
+  fill: var(--ink-soft);
+  opacity: 0.8;
+}
+.hs-hit {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 1.5;
+  filter: drop-shadow(0 0 4px var(--cyan));
+}
+
+/* click-drag marquee selection */
+.hs-marquee {
+  fill: rgba(5, 217, 232, 0.12);
+  stroke: var(--cyan);
+  stroke-width: 1.2;
+  stroke-dasharray: 4 3;
+}
+.hs__scatter {
+  cursor: crosshair;
+}
+.hs-selbadge {
+  position: absolute;
+  top: 8px;
+  left: 52px;
+  display: none;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 6px 4px 11px;
+  background: rgba(13, 4, 40, 0.92);
+  border: 1px solid var(--cyan);
+  border-radius: 8px;
+  font-family: var(--font-crt);
+  font-size: 16px;
+  letter-spacing: 0.5px;
+  color: var(--ink);
+  box-shadow: 0 0 14px rgba(5, 217, 232, 0.3);
+  z-index: 4;
+}
+.hs-selbadge.is-on {
+  display: flex;
+}
+.hs-selbadge b {
+  color: var(--cyan);
+}
+.hs-selbadge button {
+  border: none;
+  background: var(--magenta);
+  color: #fff;
+  font-family: var(--font-crt);
+  font-size: 14px;
+  line-height: 1;
+  border-radius: 5px;
+  padding: 3px 7px;
+  cursor: pointer;
+}
+.hs-selbadge button:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 1px;
+}

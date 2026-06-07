@@ -95,7 +95,7 @@
 /* ---- side panel ---- */
 .cw__panel {
   flex: none;
-  width: clamp(200px, 30%, 268px);
+  width: clamp(280px, 32%, 360px);
   background: var(--bg-screen-dim);
   border-left: 2px solid var(--hairline);
   padding: 14px 14px 16px;
@@ -266,14 +266,14 @@
 }
 .cw__rack {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(66px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 6px;
   background: #110e1a;
   padding: 8px;
   border-radius: 6px;
   border: 1px solid var(--hairline);
   margin-top: 4px;
-  max-height: 150px;
+  max-height: 240px;
   overflow-y: auto;
 }
 

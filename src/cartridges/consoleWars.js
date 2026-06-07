@@ -683,7 +683,12 @@ export function createConsoleWars({ mountEl, data, store, shell }) {
 
   function toggleGenreFocus(genre) {
     const current = store.get().focusedGenres || [];
-    const updated = toggleFamily(current, genreFamily(genre));
+    let updated;
+    if (current.includes(genre)) {
+      updated = current.filter((g) => g !== genre);
+    } else {
+      updated = [...current, genre];
+    }
     store.set({ focusedGenres: updated });
   }
 

@@ -55,6 +55,7 @@
 }
 .cw-row.is-dimmed {
   opacity: 0.25;
+  filter: grayscale(100%);
 }
 .cw-rowlabel {
   font-family: var(--font-data);

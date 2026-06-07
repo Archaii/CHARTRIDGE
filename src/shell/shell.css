@@ -81,13 +81,25 @@
 .cab {
   position: relative;
   z-index: 10;
+  height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 .cab__inner {
   position: relative;
   z-index: 10;
   max-width: 1240px;
+  width: 100%;
+  height: 100%;
   margin: 0 auto;
-  padding: clamp(14px, 2.4vw, 28px) clamp(12px, 2vw, 22px) 48px;
+  padding: clamp(6px, 1.2vw, 12px) clamp(8px, 1.5vw, 16px);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 /* ---------- marquee header ---------- */
@@ -163,20 +175,26 @@
 
 /* ---------- machine: rail | screen | rail ---------- */
 .machine {
-  margin-top: clamp(12px, 1.8vw, 20px);
+  margin-top: 0;
   display: grid;
   grid-template-columns: clamp(140px, 15vw, 172px) 1fr clamp(180px, 20vw, 238px);
-  gap: clamp(12px, 1.6vw, 18px);
+  gap: clamp(8px, 1.2vw, 14px);
   align-items: stretch;
+  flex: 1;
+  min-height: 0;
 }
 
 .rail {
   background: linear-gradient(180deg, var(--panel), var(--bg-deep));
   border: 2px solid rgba(185, 103, 255, 0.35);
   border-radius: 12px;
-  padding: 14px 12px;
+  padding: clamp(8px, 1.2vw, 12px) clamp(6px, 1vw, 10px);
   box-shadow: var(--shadow-inset);
   min-width: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
 }
 .rail__title {
   font-family: var(--font-display);
@@ -297,15 +315,19 @@
   border: 3px solid #2a1a52;
   border-radius: var(--radius-screen);
   background: var(--screen);
-  padding: var(--bezel);
+  padding: clamp(6px, 1vw, 10px);
   box-shadow: 0 0 0 5px #0c0820, 0 0 40px rgba(5, 217, 232, 0.18),
     inset 0 0 70px rgba(5, 217, 232, 0.05);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 .screen {
   position: relative;
   background: var(--screen);
   border-radius: 8px;
-  min-height: clamp(380px, 56vh, 580px);
+  min-height: 0;
   height: 100%;
   overflow: hidden;
   /* faint edge glow only — NO scanlines over the plotting area */
@@ -320,16 +342,17 @@
 
 /* ---------- arcade control deck ---------- */
 .deck {
-  margin-top: clamp(12px, 1.8vw, 20px);
+  margin-top: 0;
   border: 2px solid rgba(5, 217, 232, 0.3);
   border-radius: 14px;
   background: linear-gradient(180deg, var(--panel-2), var(--bg-deep));
-  padding: clamp(12px, 1.6vw, 18px) clamp(14px, 2vw, 22px);
+  padding: clamp(6px, 1vw, 12px) clamp(10px, 1.5vw, 18px);
   display: grid;
   grid-template-columns: auto auto 1fr auto;
   align-items: center;
-  gap: clamp(14px, 2vw, 26px);
+  gap: clamp(10px, 1.5vw, 20px);
   box-shadow: var(--shadow-inset);
+  flex: none;
 }
 .deck__group {
   display: flex;
@@ -430,6 +453,7 @@
 @media (max-width: 900px) {
   .machine {
     grid-template-columns: 1fr;
+    overflow-y: auto;
   }
   .rail {
     display: none; /* reclaim space for the screen on small viewports */

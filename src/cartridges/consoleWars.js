@@ -19,7 +19,7 @@ import {
   max as d3max,
   format,
 } from "d3";
-import { genreFamily, familyColor } from "../ui/palette.js";
+import { genreFamily, familyColor, genreColor } from "../ui/palette.js";
 import { PLAYHEAD_MS } from "../store.js";
 import { createLegend } from "../ui/legend.js";
 import { tooltip } from "../ui/tooltip.js";
@@ -178,7 +178,7 @@ export function createConsoleWars({ mountEl, data, store, shell }) {
         .attr("y", yBase - maxAmp)
         .attr("width", bandW)
         .attr("height", maxAmp)
-        .attr("fill", (d) => (d.domFamily ? familyColor(d.domFamily, store.get().colorblind) : NEUTRAL));
+        .attr("fill", (d) => (d.domGenre ? genreColor(d.domGenre, store.get().colorblind) : NEUTRAL));
 
       const outline = gRow.append("path").attr("class", "cw-outline");
 
@@ -241,9 +241,9 @@ export function createConsoleWars({ mountEl, data, store, shell }) {
     });
   }
 
-  // ---------- honor the shared focusedFamily (coordination, M6) ----------
-  // When a family is focused elsewhere (HIGH SCORE / GENRE WARP), dim the
-  // per-year bands whose dominant family isn't it — so the focused genre
+  // ---------- honor the shared focusedGenre (coordination, M6) ----------
+  // When a genre is focused elsewhere (HIGH SCORE / GENRE WARP), dim the
+  // per-year bands whose dominant genre isn't it — so the focused genre
   // "stays isolated" when you jump into CONSOLE WARS (redesign §5).
   function applyFocus(focus) {
     rowEls.forEach((re, i) => {
@@ -251,7 +251,8 @@ export function createConsoleWars({ mountEl, data, store, shell }) {
         .select(".cw-bands")
         .selectAll("rect")
         .data(rows[i].series)
-        .style("opacity", (d) => (focus && d.domFamily !== focus ? 0.12 : 1));
+        .style("opacity", (d) => (focus && d.domGenre !== focus ? 0.12 : 1))
+        .style("filter", (d) => (focus && d.domGenre !== focus ? "grayscale(100%)" : "none"));
     });
   }
 
@@ -262,7 +263,7 @@ export function createConsoleWars({ mountEl, data, store, shell }) {
         .select(".cw-bands")
         .selectAll("rect")
         .data(rows[i].series)
-        .attr("fill", (d) => (d.domFamily ? familyColor(d.domFamily, cb) : NEUTRAL));
+        .attr("fill", (d) => (d.domGenre ? genreColor(d.domGenre, cb) : NEUTRAL));
     });
   }
 
@@ -386,9 +387,9 @@ export function createConsoleWars({ mountEl, data, store, shell }) {
       recolorBands(state.colorblind);
       prevCb = state.colorblind;
     }
-    if (state.focusedFamily !== prevFocus) {
-      applyFocus(state.focusedFamily);
-      prevFocus = state.focusedFamily;
+    if (state.focusedGenre !== prevFocus) {
+      applyFocus(state.focusedGenre);
+      prevFocus = state.focusedGenre;
     }
     const yr = playYear(state);
     if (yr !== prevPlayYear) {
@@ -403,7 +404,7 @@ export function createConsoleWars({ mountEl, data, store, shell }) {
     rebuild(w, h);
     const state = store.get();
     renderRidges(state, false);
-    applyFocus(state.focusedFamily); // bands are rebuilt on resize → reapply
+    applyFocus(state.focusedGenre); // bands are rebuilt on resize → reapply
     renderPlayhead(state);
   }
 
@@ -418,7 +419,7 @@ export function createConsoleWars({ mountEl, data, store, shell }) {
       const state = store.get();
       prevRegion = state.region;
       prevPlayYear = playYear(state);
-      prevFocus = state.focusedFamily;
+      prevFocus = state.focusedGenre;
       prevCb = state.colorblind;
       measureAndBuild();
 

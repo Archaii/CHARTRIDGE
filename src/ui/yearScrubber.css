@@ -78,10 +78,7 @@
   background: linear-gradient(90deg, var(--cyan), var(--magenta));
   box-shadow: 0 0 10px rgba(255, 42, 109, 0.5);
 }
-/* glide the fill while the playhead is sweeping (set per-frame in JS) */
-.scrubber.is-playing .scrubber__fill {
-  transition: left var(--scrub-dur, 0s) linear, width var(--scrub-dur, 0s) linear;
-}
+/* glide transition removed so the fill stays perfectly attached to the circles as they jump */
 
 .scrubber__input {
   position: absolute;

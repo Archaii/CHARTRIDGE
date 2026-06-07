@@ -5,7 +5,7 @@
 // dense scatter makes per-dot clicking fiddly). Because the legend is
 // shared, this same gesture filters all three cartridges consistently.
 import "./legend.css";
-import { familySwatches } from "./palette.js";
+import { genreSwatches } from "./palette.js";
 
 /**
  * @param {{ mountEl: HTMLElement, store?: object, title?: string }} opts
@@ -13,15 +13,15 @@ import { familySwatches } from "./palette.js";
  */
 export function createLegend({ mountEl, store, title = "Genre" }) {
   mountEl.classList.add("legend");
-  mountEl.setAttribute("aria-label", "Genre family filter — click to isolate");
+  mountEl.setAttribute("aria-label", "Genre filter — click to isolate");
   let prevCb;
 
   function build(cb) {
     prevCb = cb;
-    const items = familySwatches(cb)
+    const items = genreSwatches(cb)
       .map(
         (s) => `
-        <button type="button" class="legend__item" data-family="${s.family}" aria-pressed="false">
+        <button type="button" class="legend__item" data-genre="${s.genre}" aria-pressed="false">
           <span class="legend__swatch" style="background:${s.color}"></span>${s.label}
         </button>`
       )
@@ -32,9 +32,9 @@ export function createLegend({ mountEl, store, title = "Genre" }) {
   // Reflect colorblind (re-color swatches) + focus (active/dim states).
   function reflect(state) {
     if (state.colorblind !== prevCb) build(state.colorblind);
-    const focus = state.focusedFamily;
+    const focus = state.focusedGenre;
     for (const b of mountEl.querySelectorAll(".legend__item")) {
-      const on = b.dataset.family === focus;
+      const on = b.dataset.genre === focus;
       b.classList.toggle("is-active", on);
       b.classList.toggle("is-dim", !!focus && !on);
       b.setAttribute("aria-pressed", String(on));
@@ -44,8 +44,8 @@ export function createLegend({ mountEl, store, title = "Genre" }) {
   function onClick(e) {
     const b = e.target.closest(".legend__item");
     if (!b) return;
-    const fam = b.dataset.family;
-    store.set({ focusedFamily: store.get().focusedFamily === fam ? null : fam });
+    const genre = b.dataset.genre;
+    store.set({ focusedGenre: store.get().focusedGenre === genre ? null : genre });
   }
 
   build(store ? store.get().colorblind : false);

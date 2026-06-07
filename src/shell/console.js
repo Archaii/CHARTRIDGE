@@ -110,6 +110,7 @@ export function createConsole(rootEl) {
   const railTitle = rootEl.querySelector("#hs-rail-title");
   const lbSummary = rootEl.querySelector("#lb-summary");
   const railBtns = [...rootEl.querySelectorAll(".slot-cart")];
+  const deck = rootEl.querySelector(".deck");
 
   // Mount the live arcade controls, wired to the shared store.
   createRegionToggle({ mountEl: rootEl.querySelector("#deck-region"), store });
@@ -129,6 +130,9 @@ export function createConsole(rootEl) {
   // Reflect store: filter readout, colorblind state, active cartridge.
   let sampleNote = "";
   function reflect(state) {
+    const isMenu = state.cartridge === "menu";
+    deck.style.display = isMenu ? "none" : null;
+
     const [s, e] = state.yearRange;
     const yrs = s === e ? `${s}` : `${s}–${e}`;
     readout.innerHTML = `${sampleNote ? `<b>${sampleNote}</b> · ` : ""}${REGION_LABEL[state.region]} · ${yrs}`;

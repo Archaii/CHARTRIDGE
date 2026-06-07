@@ -12,11 +12,8 @@ const DEFAULT_YEAR_RANGE = [1995, 2017];
 const state = {
   cartridge: "menu", // "menu" | "highScore" | "consoleWars" | "genreWarp"
   region: "total", // "na" | "jp" | "pal" | "other" | "total"
-  // Focus = a genre FAMILY key (see ui/palette.js FAMILIES) or null.
-  // The architecture calls this "focusedGenre", but every view stacks
-  // by the 6 families, so focus coordinates at the family level — the
-  // "focus one genre" interaction from the redesign spec (§1a).
-  focusedFamily: null,
+  // Focus = a genre key (from dataset) or a family key or null.
+  focusedGenre: null,
   yearRange: [...DEFAULT_YEAR_RANGE], // [start, end] — brush / scrubber
   colorblind: false,
   playing: false, // true while the year playhead is sweeping

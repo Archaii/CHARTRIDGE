@@ -66,7 +66,7 @@ export function createRouter({ screen, console: hw, data }) {
       return;
     }
     if (e.key.toLowerCase() === "r") {
-      store.set({ region: "total", focusedFamily: null, yearRange: [1995, 2017] });
+      store.set({ region: "total", focusedGenre: null, yearRange: [1995, 2017] });
       return;
     }
     if (e.key === "Escape" || e.key === "Backspace") {

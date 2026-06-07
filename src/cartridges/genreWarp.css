@@ -48,6 +48,7 @@
 }
 .gw-band.is-faded {
   opacity: 0.12;
+  filter: grayscale(100%);
 }
 .gw-ring {
   fill: none;

@@ -29,7 +29,7 @@ import {
   sum as d3sum,
   format,
 } from "d3";
-import { FAMILIES, FAMILY_LABEL, genreFamily, familyColor } from "../ui/palette.js";
+import { GENRES, genreColor } from "../ui/palette.js";
 import { PLAYHEAD_MS } from "../store.js";
 import { createLegend } from "../ui/legend.js";
 import { tooltip } from "../ui/tooltip.js";
@@ -60,13 +60,14 @@ export function createGenreWarp({ mountEl, data, store, shell }) {
   let resizeRaf = 0;
   let prev = {};
 
-  // Roll the raw-genre table into 6-family totals per year for a region.
+  // Roll the raw-genre table into genre totals per year for a region.
   function perYearFor(region) {
     return years.map((y) => {
       const cell = gyr.table[region]?.[y] || {};
       const o = { year: y };
-      for (const f of FAMILIES) o[f] = 0;
-      for (const genre in cell) o[genreFamily(genre)] += cell[genre];
+      for (const g of GENRES) {
+        o[g] = cell[g] || 0;
+      }
       return o;
     });
   }
@@ -122,10 +123,10 @@ export function createGenreWarp({ mountEl, data, store, shell }) {
 
   // ---------- disc ----------
   function renderDisc(state) {
-    const { region, focusedFamily: focus, colorblind: cb } = state;
+    const { region, focusedGenre: focus, colorblind: cb } = state;
     const perYear = perYearFor(region);
-    const series = d3stack().keys(FAMILIES)(perYear);
-    const maxTotal = d3max(perYear, (o) => d3sum(FAMILIES, (f) => o[f])) || 1;
+    const series = d3stack().keys(GENRES)(perYear);
+    const maxTotal = d3max(perYear, (o) => d3sum(GENRES, (g) => o[g])) || 1;
     radius.domain([0, maxTotal]);
 
     const areaGen = areaRadial()
@@ -138,10 +139,10 @@ export function createGenreWarp({ mountEl, data, store, shell }) {
       .selectAll("path")
       .data(series, (s) => s.key)
       .join((enter) => enter.append("path").attr("class", "gw-band"))
-      .attr("fill", (s) => familyColor(s.key, cb))
+      .attr("fill", (s) => genreColor(s.key, cb))
       .classed("is-faded", (s) => focus && s.key !== focus)
       .on("click", (_e, s) =>
-        store.set({ focusedFamily: store.get().focusedFamily === s.key ? null : s.key })
+        store.set({ focusedGenre: store.get().focusedGenre === s.key ? null : s.key })
       )
       .on("mousemove", (event, s) => onBandHover(event, s.key, perYear, region))
       .on("mouseleave", () => tooltip.hide())
@@ -171,7 +172,7 @@ export function createGenreWarp({ mountEl, data, store, shell }) {
   }
 
   function renderHub(region, _maxTotal, perYear) {
-    const total = d3sum(perYear, (o) => d3sum(FAMILIES, (f) => o[f]));
+    const total = d3sum(perYear, (o) => d3sum(GENRES, (g) => o[g]));
     gHub.selectAll("*").remove();
     gHub.append("circle").attr("class", "gw-hub").attr("r", innerR - 3);
     gHub
@@ -217,28 +218,35 @@ export function createGenreWarp({ mountEl, data, store, shell }) {
 
   // ---------- side panel inset ----------
   function renderInset(state) {
-    const focus = state.focusedFamily;
+    const focus = state.focusedGenre;
     if (!focus) {
-      insetEl.innerHTML = `<p class="gw__hint">Click a band (or its legend hue) to focus a genre family and see its trend.</p>`;
+      insetEl.innerHTML = `<p class="gw__hint">Click a band (or its legend hue) to focus a genre and see its trend.</p>`;
       return;
     }
     const region = state.region;
     const cb = state.colorblind;
-    const color = familyColor(focus, cb);
-    const perYear = perYearFor(region);
-    const seriesData = perYear.map((o) => ({ year: o.year, v: o[focus] }));
+    
+    const color = genreColor(focus, cb);
+    const label = focus;
+
+    const seriesData = years.map((y) => {
+      const cell = gyr.table[region]?.[y] || {};
+      const v = cell[focus] || 0;
+      return { year: y, v };
+    });
+
     const peak = seriesData.reduce((a, b) => (b.v > a.v ? b : a), seriesData[0]);
     const tot = d3sum(seriesData, (d) => d.v);
 
     insetEl.innerHTML = `
       <div class="gw__inset-title">
-        <span class="gw__inset-swatch" style="background:${color}"></span>${FAMILY_LABEL[focus]}
+        <span class="gw__inset-swatch" style="background:${color}"></span>${label}
       </div>
       <div class="gw__inset-chart"></div>
       <p class="gw__inset-stat">Peak <b>${peak.year}</b> · ${fmtSales(peak.v)} &nbsp;·&nbsp; Total <b>${fmtSales(tot)}</b></p>
       <button class="gw__clear" aria-label="Clear focus">✕ Clear focus</button>`;
     insetEl.querySelector(".gw__clear").addEventListener("click", () =>
-      store.set({ focusedFamily: null })
+      store.set({ focusedGenre: null })
     );
 
     // the linear line chart (Cleveland–McGill precision beside the disc)
@@ -275,7 +283,7 @@ export function createGenreWarp({ mountEl, data, store, shell }) {
   }
 
   // ---------- hover ----------
-  function onBandHover(event, family, perYear, region) {
+  function onBandHover(event, genre, perYear, region) {
     const [mx, my] = pointer(event, svg.node());
     const dx = mx - cx;
     const dy = my - cy;
@@ -286,8 +294,8 @@ export function createGenreWarp({ mountEl, data, store, shell }) {
     const row = perYear.find((o) => o.year === yr);
     if (!row) return;
     tooltip.show(
-      `<div class="tooltip__title">${FAMILY_LABEL[family]} · ${yr}</div>
-       <div class="tooltip__row"><span>${region.toUpperCase()} sales</span><b>${fmtSales(row[family])}</b></div>`,
+      `<div class="tooltip__title">${genre} · ${yr}</div>
+       <div class="tooltip__row"><span>${region.toUpperCase()} sales</span><b>${fmtSales(row[genre] || 0)}</b></div>`,
       event.clientX,
       event.clientY
     );
@@ -298,7 +306,7 @@ export function createGenreWarp({ mountEl, data, store, shell }) {
     // The disc + inset depend on region/focus/colorblind — not on the
     // year — so during playback only the spoke needs to move.
     const visualChanged =
-      state.focusedFamily !== prev.focus ||
+      state.focusedGenre !== prev.focus ||
       state.region !== prev.region ||
       state.colorblind !== prev.cb;
     if (visualChanged) {
@@ -306,7 +314,7 @@ export function createGenreWarp({ mountEl, data, store, shell }) {
       renderInset(state);
     }
     renderSpoke(state);
-    prev = { focus: state.focusedFamily, region: state.region, cb: state.colorblind };
+    prev = { focus: state.focusedGenre, region: state.region, cb: state.colorblind };
   }
 
   function measureAndRender() {
@@ -315,7 +323,7 @@ export function createGenreWarp({ mountEl, data, store, shell }) {
     renderDisc(state);
     renderSpoke(state);
     renderInset(state);
-    prev = { focus: state.focusedFamily, region: state.region, cb: state.colorblind };
+    prev = { focus: state.focusedGenre, region: state.region, cb: state.colorblind };
   }
 
   return {

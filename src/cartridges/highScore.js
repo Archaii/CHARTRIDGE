@@ -30,7 +30,7 @@ import {
   quadtree as d3quadtree,
   format,
 } from "d3";
-import { FAMILIES, genreFamily, familyColor } from "../ui/palette.js";
+import { GENRES, genreFamily, familyColor, genreColor } from "../ui/palette.js";
 import { createLegend } from "../ui/legend.js";
 import { tooltip } from "../ui/tooltip.js";
 
@@ -79,17 +79,17 @@ export function createHighScore({ mountEl, data, store, shell }) {
     jy: jitter(i, 2) * 2.2,
   }));
 
-  // cache rgb per family+colorblind for fast canvas fills
+  // cache rgb per genre+colorblind for fast canvas fills
   const rgbCache = new Map();
-  const familyRgb = (family, cb) => {
-    const key = `${family}-${cb}`;
-    if (!rgbCache.has(key)) rgbCache.set(key, hexToRgb(familyColor(family, cb)));
+  const genreRgb = (genre, cb) => {
+    const key = `${genre}-${cb}`;
+    if (!rgbCache.has(key)) rgbCache.set(key, hexToRgb(genreColor(genre, cb)));
     return rgbCache.get(key);
   };
 
   // view state
   let streamWrap, scatterWrap, streamSvg, scatterSvg, canvas, ctx, legend;
-  let gStreamBands, gStreamAxis, gBrush, brush;
+  let gStreamBands, gStreamBandsBg, gStreamAxis, gBrush, brush;
   let gScatterAxis, gScatterHit;
   let xStream, xScatter, yScatter, streamT, streamB;
   let scL, scR, scT, scB;
@@ -129,6 +129,16 @@ export function createHighScore({ mountEl, data, store, shell }) {
       .append("svg")
       .attr("role", "img")
       .attr("aria-label", "Streamgraph of genre-family share of sales by year. Brush to select a year range.");
+    
+    const defs = streamSvg.append("defs");
+    defs.append("clipPath")
+      .attr("id", "hs-stream-clip")
+      .append("rect")
+      .attr("id", "hs-stream-clip-rect")
+      .attr("y", 0)
+      .attr("height", "100%");
+
+    gStreamBandsBg = streamSvg.append("g").attr("class", "hs-bands-bg");
     gStreamBands = streamSvg.append("g").attr("class", "hs-bands");
     gStreamAxis = streamSvg.append("g").attr("class", "hs-axis");
     gBrush = streamSvg.append("g").attr("class", "hs-brush");
@@ -197,15 +207,14 @@ export function createHighScore({ mountEl, data, store, shell }) {
 
   // ---------- streamgraph ----------
   function renderStream(state) {
-    const { region, focusedFamily: focus, colorblind: cb } = state;
+    const { region, focusedGenre: focus, colorblind: cb } = state;
     const perYear = years.map((y) => {
       const cell = gyr.table[region]?.[y] || {};
       const o = { year: y };
-      for (const f of FAMILIES) o[f] = 0;
-      for (const genre in cell) o[genreFamily(genre)] += cell[genre];
+      for (const g of GENRES) o[g] = cell[g] || 0;
       return o;
     });
-    const series = d3stack().keys(FAMILIES).offset(stackOffsetWiggle)(perYear);
+    const series = d3stack().keys(GENRES).offset(stackOffsetWiggle)(perYear);
     const lo = d3min(series, (s) => d3min(s, (d) => d[0]));
     const hi = d3max(series, (s) => d3max(s, (d) => d[1]));
     const yStream = scaleLinear().domain([lo, hi]).range([streamB, streamT]);
@@ -219,11 +228,21 @@ export function createHighScore({ mountEl, data, store, shell }) {
       .selectAll("path")
       .data(series, (s) => s.key)
       .join((enter) => enter.append("path").attr("class", "hs-band"))
-      .attr("fill", (s) => familyColor(s.key, cb))
+      .attr("fill", (s) => genreColor(s.key, cb))
       .classed("is-faded", (s) => focus && s.key !== focus)
       .on("click", (_e, s) =>
-        store.set({ focusedFamily: store.get().focusedFamily === s.key ? null : s.key })
+        store.set({ focusedGenre: store.get().focusedGenre === s.key ? null : s.key })
       )
+      .transition()
+      .duration(prev.region === region || REDUCED_MOTION ? 0 : 400)
+      .attr("d", areaGen);
+
+    gStreamBandsBg
+      .selectAll("path")
+      .data(series, (s) => s.key)
+      .join((enter) => enter.append("path").attr("class", "hs-band-bg"))
+      .attr("fill", (s) => genreColor(s.key, cb))
+      .classed("is-faded", (s) => focus && s.key !== focus)
       .transition()
       .duration(prev.region === region || REDUCED_MOTION ? 0 : 400)
       .attr("d", areaGen);
@@ -231,7 +250,7 @@ export function createHighScore({ mountEl, data, store, shell }) {
 
   // ---------- scatter (canvas) ----------
   function renderScatter(state) {
-    const { region, focusedFamily: focus, colorblind: cb, yearRange } = state;
+    const { region, focusedGenre: focus, colorblind: cb, yearRange } = state;
     const [ys, ye] = yearRange;
     const cw = canvas.width / dpr;
     const ch = canvas.height / dpr;
@@ -249,7 +268,7 @@ export function createHighScore({ mountEl, data, store, shell }) {
       p.sx = xScatter(regionVal(p, region)) + p.jx;
       p.sy = yScatter(p.score) + p.jy;
       p.inYear = p.year >= ys && p.year <= ye;
-      p.inFocus = !focus || p.family === focus;
+      p.inFocus = !focus || p.genre === focus || p.family === focus;
       if (p.inYear && p.inFocus) lit.push(p);
     }
     litPoints = lit;
@@ -259,14 +278,16 @@ export function createHighScore({ mountEl, data, store, shell }) {
     // tier A: faded context (out of year / wrong focus)
     for (const p of active) {
       if (p.inYear && p.inFocus) continue;
-      const [r, g, b] = familyRgb(p.family, cb);
-      ctx.fillStyle = `rgba(${r},${g},${b},${p.inYear ? 0.1 : 0.045})`;
+      const [r, g, b] = genreRgb(p.genre, cb);
+      const gray = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
+      const opacity = !p.inYear ? 0.045 : 0.1;
+      ctx.fillStyle = `rgba(${gray},${gray},${gray},${opacity})`;
       dot(p);
     }
     // tier B: lit points — dim when a selection is active and excludes them
     for (const p of lit) {
       if (hasSel && selected.has(p)) continue; // drawn bright in tier C
-      const [r, g, b] = familyRgb(p.family, cb);
+      const [r, g, b] = genreRgb(p.genre, cb);
       ctx.fillStyle = `rgba(${r},${g},${b},${hasSel ? 0.1 : 0.82})`;
       dot(p);
     }
@@ -274,7 +295,7 @@ export function createHighScore({ mountEl, data, store, shell }) {
     if (hasSel) {
       for (const p of lit) {
         if (!selected.has(p)) continue;
-        const [r, g, b] = familyRgb(p.family, cb);
+        const [r, g, b] = genreRgb(p.genre, cb);
         ctx.fillStyle = `rgba(${r},${g},${b},0.98)`;
         dot(p, DOT_R + 1.6);
         ctx.strokeStyle = "rgba(255,255,255,0.9)";
@@ -357,6 +378,14 @@ export function createHighScore({ mountEl, data, store, shell }) {
     if (s === e) gBrush.call(brush.move, null);
     else gBrush.call(brush.move, [xStream(s), xStream(e)]);
     suppressBrush = false;
+
+    gStreamBands.attr("clip-path", "url(#hs-stream-clip)");
+    gStreamBandsBg.style("display", null);
+    const x0 = xStream(s);
+    const x1 = xStream(e);
+    streamSvg.select("#hs-stream-clip-rect")
+      .attr("x", x0)
+      .attr("width", Math.max(0, x1 - x0));
   }
 
   // ---------- scatter hover / click / marquee selection ----------
@@ -442,10 +471,10 @@ export function createHighScore({ mountEl, data, store, shell }) {
       renderScatter(store.get());
       syncSelectionUI();
     } else {
-      // plain click → toggle family focus, or clear an active selection
+      // plain click → toggle genre focus, or clear an active selection
       const p = nearest(event);
       if (p) {
-        store.set({ focusedFamily: store.get().focusedFamily === p.family ? null : p.family });
+        store.set({ focusedGenre: store.get().focusedGenre === p.genre ? null : p.genre });
       } else if (selected.size) {
         clearSelection();
       }
@@ -492,14 +521,14 @@ export function createHighScore({ mountEl, data, store, shell }) {
     renderStream(state);
     renderScatter(state);
     reflectBrush(state);
-    prev = { region: state.region, focus: state.focusedFamily, cb: state.colorblind };
+    prev = { region: state.region, focus: state.focusedGenre, cb: state.colorblind };
   }
 
   function onState(state) {
     // stream only needs a redraw on region/focus/colorblind change
     if (
       state.region !== prev.region ||
-      state.focusedFamily !== prev.focus ||
+      state.focusedGenre !== prev.focus ||
       state.colorblind !== prev.cb
     ) {
       renderStream(state);
@@ -512,7 +541,7 @@ export function createHighScore({ mountEl, data, store, shell }) {
     }
     renderScatter(state); // cheap; reflects year/region/focus/selection
     reflectBrush(state);
-    prev = { region: state.region, focus: state.focusedFamily, cb: state.colorblind };
+    prev = { region: state.region, focus: state.focusedGenre, cb: state.colorblind };
   }
 
   function measureAndRender() {

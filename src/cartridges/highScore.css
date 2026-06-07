@@ -48,6 +48,7 @@
 }
 .hs-band.is-faded {
   opacity: 0.15;
+  filter: grayscale(100%);
 }
 .hs-axis text {
   font-family: var(--font-data);
@@ -67,6 +68,11 @@
 }
 .hs-brush .handle {
   fill: var(--accent);
+}
+
+.hs-bands-bg {
+  filter: grayscale(100%);
+  opacity: 0.15;
 }
 
 /* bottom scatter */

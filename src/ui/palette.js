@@ -32,7 +32,6 @@ const GENRE_TO_FAMILY = {
   Action: "action",
   "Action-Adventure": "action",
   Adventure: "action",
-  Sandbox: "action",
   Shooter: "compete",
   Fighting: "compete",
   Sports: "compete",
@@ -75,6 +74,33 @@ const PALETTE_CB = {
 // Fallback for any genre not in the map (keeps rendering robust).
 const NEUTRAL = "#9aa0a6";
 
+const GENRE_COLORS = {
+  Action: "#ff6b35",
+  "Action-Adventure": "#ff9e79",
+  Adventure: "#cc4e1d",
+  
+  Shooter: "#05d9e8",
+  Fighting: "#3f88c5",
+  Sports: "#005f73",
+  Racing: "#00b4d8",
+  
+  Strategy: "#00f5a0",
+  Simulation: "#2a9d8f",
+  Puzzle: "#70e000",
+  "Board Game": "#38b000",
+  
+  "Role-Playing": "#c77dff",
+  "Visual Novel": "#9b5de5",
+  Platform: "#e0aaff",
+  
+  Party: "#ffd23f",
+  Music: "#ff9f1c",
+  Misc: "#e9c46a",
+  Education: "#ffb703",
+  
+  MMO: "#ff2a6d",
+};
+
 /** Map a genre string to its family key (or "social" as a safe default). */
 export function genreFamily(genre) {
   return GENRE_TO_FAMILY[genre] ?? "social";
@@ -88,14 +114,24 @@ export function familyColor(family, colorblind = false) {
 
 /** Color for a raw genre, honoring the colorblind toggle. */
 export function genreColor(genre, colorblind = false) {
-  return familyColor(genreFamily(genre), colorblind);
+  if (colorblind) {
+    return familyColor(genreFamily(genre), true);
+  }
+  return GENRE_COLORS[genre] ?? familyColor(genreFamily(genre), false);
 }
 
-/** The 6 family swatches in order — for building the legend. */
-export function familySwatches(colorblind = false) {
-  return FAMILIES.map((family) => ({
-    family,
-    label: FAMILY_LABEL[family],
-    color: familyColor(family, colorblind),
+export const GENRES = Object.keys(GENRE_TO_FAMILY).sort((a, b) => {
+  const famA = genreFamily(a);
+  const famB = genreFamily(b);
+  if (famA !== famB) return famA.localeCompare(famB);
+  return a.localeCompare(b);
+});
+
+/** The raw genre swatches in order — for building the legend. */
+export function genreSwatches(colorblind = false) {
+  return GENRES.map((genre) => ({
+    genre,
+    label: genre,
+    color: genreColor(genre, colorblind),
   }));
 }

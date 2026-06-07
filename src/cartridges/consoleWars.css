@@ -211,6 +211,7 @@
 
 /* physical console/deck slot switcher style */
 .cw__slot-container {
+  flex: none;
   padding: 8px;
   background: rgba(13, 4, 40, 0.45);
   border-radius: 8px;
@@ -265,6 +266,7 @@
   margin-top: 10px;
 }
 .cw__rack {
+  flex: none;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 6px;
@@ -326,6 +328,7 @@
 
 /* loaded deck cartridge view */
 .cw__loaded-slot {
+  flex: none;
   display: flex;
   justify-content: center;
   background: rgba(13, 4, 40, 0.4);
@@ -370,6 +373,7 @@
 
 /* controller schematic styling */
 .cw__controller-wrap {
+  flex: none;
   display: flex;
   justify-content: center;
   margin: 8px 0;

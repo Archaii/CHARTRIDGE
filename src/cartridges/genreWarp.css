@@ -190,3 +190,72 @@
     max-height: 40%;
   }
 }
+
+/* CD-specific Visuals */
+.gw__disc-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  pointer-events: none;
+  background: conic-gradient(
+    from 120deg,
+    rgba(255, 0, 128, 0.12) 0%,
+    rgba(0, 255, 255, 0.12) 18%,
+    rgba(255, 255, 255, 0.22) 28%,
+    rgba(255, 255, 255, 0) 42%,
+    rgba(255, 255, 0, 0.12) 53%,
+    rgba(0, 255, 255, 0.12) 68%,
+    rgba(255, 255, 255, 0.22) 78%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  box-shadow: inset 0 0 16px rgba(255, 255, 255, 0.15);
+  mix-blend-mode: screen;
+  display: none;
+  z-index: 10;
+}
+.gw-cd-body {
+  fill: #15131c;
+  stroke: rgba(255, 255, 255, 0.08);
+  stroke-width: 1.2;
+}
+.gw-cd-outer-rim {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.12);
+  stroke-width: 2.5;
+}
+.gw-hub-silver {
+  fill: #272733;
+  stroke: rgba(255, 255, 255, 0.22);
+  stroke-width: 1.5;
+}
+.gw-hub-plastic {
+  fill: #0c0b13;
+  stroke: rgba(255, 255, 255, 0.12);
+  stroke-width: 1;
+}
+.gw-hub-hole {
+  fill: #000;
+  stroke: rgba(255, 255, 255, 0.08);
+  stroke-width: 0.5;
+}
+.gw-hub-tooth {
+  stroke: rgba(255, 255, 255, 0.35);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+.gw-hub-text-top,
+.gw-hub-text-bottom {
+  font-family: var(--font-display);
+  font-size: 8px;
+  fill: var(--ink-soft);
+  letter-spacing: 0.8px;
+  font-weight: 500;
+}
+.gw-spoke {
+  stroke: var(--cyan);
+  stroke-width: 2;
+  stroke-dasharray: none;
+  filter: drop-shadow(0 0 3px var(--cyan));
+}

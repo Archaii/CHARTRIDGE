@@ -53,7 +53,7 @@ export function createGenreWarp({ mountEl, data, store, shell }) {
   // angle scale: year → radians, 0 = top, clockwise (d3 radial convention)
   const angle = scaleLinear().domain([yearMin, yearMax]).range([0, TAU * ARC_FRACTION]);
 
-  let discWrap, sideEl, svg, gRings, gBands, gSpoke, gYearLabels, gHub, legend, insetEl;
+  let discWrap, sideEl, svg, gRings, gCdBg, gBands, gSpoke, gYearLabels, gHub, legend, insetEl;
   let cx, cy, innerR, outerR, radius;
   let ro = null;
   let unsub = null;
@@ -100,12 +100,18 @@ export function createGenreWarp({ mountEl, data, store, shell }) {
         "aria-label",
         "Radial stacked-area disc: angle is year (1995 at top, clockwise), radius is sales stacked by genre family."
       );
+    
+    svg.append("defs").attr("class", "gw-defs");
+
     const g = svg.append("g").attr("class", "gw-root");
     gRings = g.append("g").attr("class", "gw-rings");
+    gCdBg = g.append("g").attr("class", "gw-cd-bg");
     gBands = g.append("g").attr("class", "gw-bands");
     gSpoke = g.append("g").attr("class", "gw-spoke-g");
     gYearLabels = g.append("g").attr("class", "gw-yearlabels");
     gHub = g.append("g").attr("class", "gw-hub-g");
+
+    select(discWrap).append("div").attr("class", "gw__disc-overlay");
   }
 
   // ---------- layout ----------
@@ -119,6 +125,13 @@ export function createGenreWarp({ mountEl, data, store, shell }) {
     innerR = Math.max(26, outerR * 0.16);
     svg.select(".gw-root").attr("transform", `translate(${cx},${cy})`);
     radius = scaleSqrt().range([innerR, outerR]);
+
+    const overlay = discWrap.querySelector(".gw__disc-overlay");
+    if (overlay) {
+      overlay.style.width = `${outerR * 2}px`;
+      overlay.style.height = `${outerR * 2}px`;
+      overlay.style.display = "block";
+    }
   }
 
   // ---------- disc ----------
@@ -128,6 +141,13 @@ export function createGenreWarp({ mountEl, data, store, shell }) {
     const series = d3stack().keys(GENRES)(perYear);
     const maxTotal = d3max(perYear, (o) => d3sum(GENRES, (g) => o[g])) || 1;
     radius.domain([0, maxTotal]);
+
+    gCdBg
+      .selectAll("circle")
+      .data([0])
+      .join("circle")
+      .attr("class", "gw-cd-body")
+      .attr("r", outerR);
 
     const areaGen = areaRadial()
       .angle((d) => angle(d.data.year))
@@ -173,18 +193,75 @@ export function createGenreWarp({ mountEl, data, store, shell }) {
 
   function renderHub(region, _maxTotal, perYear) {
     const total = d3sum(perYear, (o) => d3sum(GENRES, (g) => o[g]));
+
+    const defs = svg.select(".gw-defs");
+    defs.selectAll("*").remove();
+    
+    const rText = innerR + 10;
+    // Top arc (left-to-right, upward)
+    defs.append("path")
+      .attr("id", "gw-text-path-top")
+      .attr("d", `M ${-rText},0 A ${rText},${rText} 0 0,1 ${rText},0`);
+    // Bottom arc (right-to-left, downward)
+    defs.append("path")
+      .attr("id", "gw-text-path-bottom")
+      .attr("d", `M ${rText},0 A ${rText},${rText} 0 0,1 ${-rText},0`);
+
     gHub.selectAll("*").remove();
-    gHub.append("circle").attr("class", "gw-hub").attr("r", innerR - 3);
-    gHub
-      .append("text")
-      .attr("class", "gw-hub-region")
-      .attr("y", -3)
-      .text(region.toUpperCase());
-    gHub
-      .append("text")
-      .attr("class", "gw-hub-total")
-      .attr("y", 13)
-      .text(`${fmtInt(Math.round(total))}M`);
+    
+    // 1. CD Outer Rim
+    gHub.append("circle")
+      .attr("class", "gw-cd-outer-rim")
+      .attr("r", outerR);
+
+    // 2. CD Clamping ring
+    gHub.append("circle")
+      .attr("class", "gw-hub-silver")
+      .attr("r", innerR);
+
+    // 3. CD Plastic clamping center ring
+    gHub.append("circle")
+      .attr("class", "gw-hub-plastic")
+      .attr("r", innerR * 0.65);
+
+    // 4. Black center spindle hole
+    gHub.append("circle")
+      .attr("class", "gw-hub-hole")
+      .attr("r", innerR * 0.32);
+
+    // 5. Clamping notches / teeth
+    const teethCount = 6;
+    const teethRadius = innerR * 0.32;
+    for (let i = 0; i < teethCount; i++) {
+      const angleRad = (i * 2 * Math.PI) / teethCount;
+      const x1 = Math.sin(angleRad) * (teethRadius - 1);
+      const y1 = -Math.cos(angleRad) * (teethRadius - 1);
+      const x2 = Math.sin(angleRad) * (teethRadius + 3);
+      const y2 = -Math.cos(angleRad) * (teethRadius + 3);
+      gHub.append("line")
+        .attr("class", "gw-hub-tooth")
+        .attr("x1", x1)
+        .attr("y1", y1)
+        .attr("x2", x2)
+        .attr("y2", y2);
+    }
+
+    // 6. Text paths
+    gHub.append("text")
+      .attr("class", "gw-hub-text-top")
+      .append("textPath")
+      .attr("href", "#gw-text-path-top")
+      .attr("startOffset", "50%")
+      .attr("text-anchor", "middle")
+      .text(`REGION: ${region.toUpperCase()}`);
+
+    gHub.append("text")
+      .attr("class", "gw-hub-text-bottom")
+      .append("textPath")
+      .attr("href", "#gw-text-path-bottom")
+      .attr("startOffset", "50%")
+      .attr("text-anchor", "middle")
+      .text(`TOTAL SALES: ${fmtInt(Math.round(total))}M`);
   }
 
   // year tick labels around the rim (every 5 years)

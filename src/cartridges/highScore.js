@@ -200,7 +200,7 @@ export function createHighScore({ mountEl, data, store, shell }) {
     canvas.style.height = `${ch}px`;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     scatterSvg.attr("width", cw).attr("height", ch);
-    scL = 46; scR = 16; scT = 12; scB = 30;
+    scL = 46; scR = 16; scT = 24; scB = 30;
     // x/y ranges in CSS px (canvas is pre-scaled by dpr)
     yScatter = scaleLinear().domain([0, 10]).range([ch - scB, scT]);
   }
@@ -361,9 +361,9 @@ export function createHighScore({ mountEl, data, store, shell }) {
     gScatterAxis.append("line").attr("class", "hs-quad")
       .attr("x1", scL).attr("x2", cw - scR).attr("y1", yq).attr("y2", yq);
     gScatterAxis.append("text").attr("class", "hs-quad-label")
-      .attr("x", scL + 6).attr("y", scT + 12).text("hidden gems");
+      .attr("x", scL + 6).attr("y", scT - 6).text("hidden gems");
     gScatterAxis.append("text").attr("class", "hs-quad-label")
-      .attr("x", cw - scR - 4).attr("y", scT + 12).attr("text-anchor", "end").text("blockbusters");
+      .attr("x", cw - scR - 4).attr("y", scT - 6).attr("text-anchor", "end").text("blockbusters");
   }
 
   // ---------- brush ----------

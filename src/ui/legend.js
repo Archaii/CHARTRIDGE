@@ -32,11 +32,13 @@ export function createLegend({ mountEl, store, title = "Genre" }) {
   // Reflect colorblind (re-color swatches) + focus (active/dim states).
   function reflect(state) {
     if (state.colorblind !== prevCb) build(state.colorblind);
-    const focus = state.focusedGenre;
+    const selected = state.focusedGenres || [];
+    const hasFocus = selected.length > 0;
     for (const b of mountEl.querySelectorAll(".legend__item")) {
-      const on = b.dataset.genre === focus;
+      const genre = b.dataset.genre;
+      const on = selected.includes(genre);
       b.classList.toggle("is-active", on);
-      b.classList.toggle("is-dim", !!focus && !on);
+      b.classList.toggle("is-dim", hasFocus && !on);
       b.setAttribute("aria-pressed", String(on));
     }
   }
@@ -45,7 +47,11 @@ export function createLegend({ mountEl, store, title = "Genre" }) {
     const b = e.target.closest(".legend__item");
     if (!b) return;
     const genre = b.dataset.genre;
-    store.set({ focusedGenre: store.get().focusedGenre === genre ? null : genre });
+    const current = store.get().focusedGenres || [];
+    const updated = current.includes(genre)
+      ? current.filter((g) => g !== genre)
+      : [...current, genre];
+    store.set({ focusedGenres: updated });
   }
 
   build(store ? store.get().colorblind : false);

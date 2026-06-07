@@ -119,6 +119,11 @@
   align-items: center;
   gap: 6px;
 }
+.gw__inset-swatches {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
 .gw__inset-swatch {
   width: 11px;
   height: 11px;

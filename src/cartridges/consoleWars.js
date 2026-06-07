@@ -241,18 +241,19 @@ export function createConsoleWars({ mountEl, data, store, shell }) {
     });
   }
 
-  // ---------- honor the shared focusedGenre (coordination, M6) ----------
+  // ---------- honor the shared focusedGenres (coordination, M6) ----------
   // When a genre is focused elsewhere (HIGH SCORE / GENRE WARP), dim the
-  // per-year bands whose dominant genre isn't it — so the focused genre
-  // "stays isolated" when you jump into CONSOLE WARS (redesign §5).
-  function applyFocus(focus) {
+  // per-year bands whose dominant genre isn't in the selection — so the focused genres
+  // "stay isolated" when you jump into CONSOLE WARS (redesign §5).
+  function applyFocus(focusList = []) {
+    const hasFocus = focusList.length > 0;
     rowEls.forEach((re, i) => {
       re.gRow
         .select(".cw-bands")
         .selectAll("rect")
         .data(rows[i].series)
-        .style("opacity", (d) => (focus && d.domGenre !== focus ? 0.12 : 1))
-        .style("filter", (d) => (focus && d.domGenre !== focus ? "grayscale(100%)" : "none"));
+        .style("opacity", (d) => (hasFocus && !focusList.includes(d.domGenre) ? 0.12 : 1))
+        .style("filter", (d) => (hasFocus && !focusList.includes(d.domGenre) ? "grayscale(100%)" : "none"));
     });
   }
 
@@ -387,9 +388,10 @@ export function createConsoleWars({ mountEl, data, store, shell }) {
       recolorBands(state.colorblind);
       prevCb = state.colorblind;
     }
-    if (state.focusedGenre !== prevFocus) {
-      applyFocus(state.focusedGenre);
-      prevFocus = state.focusedGenre;
+    const focusJSON = JSON.stringify(state.focusedGenres || []);
+    if (focusJSON !== prevFocus) {
+      applyFocus(state.focusedGenres);
+      prevFocus = focusJSON;
     }
     const yr = playYear(state);
     if (yr !== prevPlayYear) {
@@ -404,7 +406,7 @@ export function createConsoleWars({ mountEl, data, store, shell }) {
     rebuild(w, h);
     const state = store.get();
     renderRidges(state, false);
-    applyFocus(state.focusedGenre); // bands are rebuilt on resize → reapply
+    applyFocus(state.focusedGenres); // bands are rebuilt on resize → reapply
     renderPlayhead(state);
   }
 
@@ -419,7 +421,7 @@ export function createConsoleWars({ mountEl, data, store, shell }) {
       const state = store.get();
       prevRegion = state.region;
       prevPlayYear = playYear(state);
-      prevFocus = state.focusedGenre;
+      prevFocus = JSON.stringify(state.focusedGenres || []);
       prevCb = state.colorblind;
       measureAndBuild();
 

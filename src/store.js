@@ -12,8 +12,8 @@ const DEFAULT_YEAR_RANGE = [1995, 2017];
 const state = {
   cartridge: "menu", // "menu" | "highScore" | "consoleWars" | "genreWarp"
   region: "total", // "na" | "jp" | "pal" | "other" | "total"
-  // Focus = a genre key (from dataset) or a family key or null.
-  focusedGenre: null,
+  // Focus = a list of genre keys (from dataset) or empty array.
+  focusedGenres: [],
   yearRange: [...DEFAULT_YEAR_RANGE], // [start, end] — brush / scrubber
   colorblind: false,
   playing: false, // true while the year playhead is sweeping

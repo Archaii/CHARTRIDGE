@@ -207,7 +207,9 @@ export function createHighScore({ mountEl, data, store, shell }) {
 
   // ---------- streamgraph ----------
   function renderStream(state) {
-    const { region, focusedGenre: focus, colorblind: cb } = state;
+    const { region, colorblind: cb } = state;
+    const focusList = state.focusedGenres || [];
+    const hasFocus = focusList.length > 0;
     const perYear = years.map((y) => {
       const cell = gyr.table[region]?.[y] || {};
       const o = { year: y };
@@ -229,10 +231,14 @@ export function createHighScore({ mountEl, data, store, shell }) {
       .data(series, (s) => s.key)
       .join((enter) => enter.append("path").attr("class", "hs-band"))
       .attr("fill", (s) => genreColor(s.key, cb))
-      .classed("is-faded", (s) => focus && s.key !== focus)
-      .on("click", (_e, s) =>
-        store.set({ focusedGenre: store.get().focusedGenre === s.key ? null : s.key })
-      )
+      .classed("is-faded", (s) => hasFocus && !focusList.includes(s.key))
+      .on("click", (_e, s) => {
+        const current = store.get().focusedGenres || [];
+        const updated = current.includes(s.key)
+          ? current.filter((g) => g !== s.key)
+          : [...current, s.key];
+        store.set({ focusedGenres: updated });
+      })
       .transition()
       .duration(prev.region === region || REDUCED_MOTION ? 0 : 400)
       .attr("d", areaGen);
@@ -242,7 +248,7 @@ export function createHighScore({ mountEl, data, store, shell }) {
       .data(series, (s) => s.key)
       .join((enter) => enter.append("path").attr("class", "hs-band-bg"))
       .attr("fill", (s) => genreColor(s.key, cb))
-      .classed("is-faded", (s) => focus && s.key !== focus)
+      .classed("is-faded", (s) => hasFocus && !focusList.includes(s.key))
       .transition()
       .duration(prev.region === region || REDUCED_MOTION ? 0 : 400)
       .attr("d", areaGen);
@@ -250,7 +256,9 @@ export function createHighScore({ mountEl, data, store, shell }) {
 
   // ---------- scatter (canvas) ----------
   function renderScatter(state) {
-    const { region, focusedGenre: focus, colorblind: cb, yearRange } = state;
+    const { region, colorblind: cb, yearRange } = state;
+    const focusList = state.focusedGenres || [];
+    const hasFocus = focusList.length > 0;
     const [ys, ye] = yearRange;
     const cw = canvas.width / dpr;
     const ch = canvas.height / dpr;
@@ -268,7 +276,7 @@ export function createHighScore({ mountEl, data, store, shell }) {
       p.sx = xScatter(regionVal(p, region)) + p.jx;
       p.sy = yScatter(p.score) + p.jy;
       p.inYear = p.year >= ys && p.year <= ye;
-      p.inFocus = !focus || p.genre === focus || p.family === focus;
+      p.inFocus = !hasFocus || focusList.includes(p.genre);
       if (p.inYear && p.inFocus) lit.push(p);
     }
     litPoints = lit;
@@ -474,7 +482,11 @@ export function createHighScore({ mountEl, data, store, shell }) {
       // plain click → toggle genre focus, or clear an active selection
       const p = nearest(event);
       if (p) {
-        store.set({ focusedGenre: store.get().focusedGenre === p.genre ? null : p.genre });
+        const current = store.get().focusedGenres || [];
+        const updated = current.includes(p.genre)
+          ? current.filter((g) => g !== p.genre)
+          : [...current, p.genre];
+        store.set({ focusedGenres: updated });
       } else if (selected.size) {
         clearSelection();
       }
@@ -518,17 +530,19 @@ export function createHighScore({ mountEl, data, store, shell }) {
 
   // ---------- orchestration ----------
   function renderAll(state) {
+    const focusJSON = JSON.stringify(state.focusedGenres || []);
     renderStream(state);
     renderScatter(state);
     reflectBrush(state);
-    prev = { region: state.region, focus: state.focusedGenre, cb: state.colorblind };
+    prev = { region: state.region, focus: focusJSON, cb: state.colorblind };
   }
 
   function onState(state) {
+    const focusJSON = JSON.stringify(state.focusedGenres || []);
     // stream only needs a redraw on region/focus/colorblind change
     if (
       state.region !== prev.region ||
-      state.focusedGenre !== prev.focus ||
+      focusJSON !== prev.focus ||
       state.colorblind !== prev.cb
     ) {
       renderStream(state);
@@ -541,7 +555,7 @@ export function createHighScore({ mountEl, data, store, shell }) {
     }
     renderScatter(state); // cheap; reflects year/region/focus/selection
     reflectBrush(state);
-    prev = { region: state.region, focus: state.focusedGenre, cb: state.colorblind };
+    prev = { region: state.region, focus: focusJSON, cb: state.colorblind };
   }
 
   function measureAndRender() {

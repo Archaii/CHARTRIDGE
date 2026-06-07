@@ -136,7 +136,9 @@ export function createGenreWarp({ mountEl, data, store, shell }) {
 
   // ---------- disc ----------
   function renderDisc(state) {
-    const { region, focusedGenre: focus, colorblind: cb } = state;
+    const { region, colorblind: cb } = state;
+    const focusList = state.focusedGenres || [];
+    const hasFocus = focusList.length > 0;
     const perYear = perYearFor(region);
     const series = d3stack().keys(GENRES)(perYear);
     const maxTotal = d3max(perYear, (o) => d3sum(GENRES, (g) => o[g])) || 1;
@@ -160,10 +162,14 @@ export function createGenreWarp({ mountEl, data, store, shell }) {
       .data(series, (s) => s.key)
       .join((enter) => enter.append("path").attr("class", "gw-band"))
       .attr("fill", (s) => genreColor(s.key, cb))
-      .classed("is-faded", (s) => focus && s.key !== focus)
-      .on("click", (_e, s) =>
-        store.set({ focusedGenre: store.get().focusedGenre === s.key ? null : s.key })
-      )
+      .classed("is-faded", (s) => hasFocus && !focusList.includes(s.key))
+      .on("click", (_e, s) => {
+        const current = store.get().focusedGenres || [];
+        const updated = current.includes(s.key)
+          ? current.filter((g) => g !== s.key)
+          : [...current, s.key];
+        store.set({ focusedGenres: updated });
+      })
       .on("mousemove", (event, s) => onBandHover(event, s.key, perYear, region))
       .on("mouseleave", () => tooltip.hide())
       .attr("d", areaGen);
@@ -295,35 +301,48 @@ export function createGenreWarp({ mountEl, data, store, shell }) {
 
   // ---------- side panel inset ----------
   function renderInset(state) {
-    const focus = state.focusedGenre;
-    if (!focus) {
-      insetEl.innerHTML = `<p class="gw__hint">Click a band (or its legend hue) to focus a genre and see its trend.</p>`;
+    const focusList = state.focusedGenres || [];
+    if (focusList.length === 0) {
+      insetEl.innerHTML = `<p class="gw__hint">Click a band (or its legend hue) to focus genres and see their combined trend.</p>`;
       return;
     }
     const region = state.region;
     const cb = state.colorblind;
     
-    const color = genreColor(focus, cb);
-    const label = focus;
+    const isMulti = focusList.length > 1;
+    const color = isMulti ? "#05d9e8" : genreColor(focusList[0], cb);
+    const label = isMulti ? `${focusList.length} Genres` : focusList[0];
 
     const seriesData = years.map((y) => {
       const cell = gyr.table[region]?.[y] || {};
-      const v = cell[focus] || 0;
+      let v = 0;
+      for (const g of focusList) {
+        v += cell[g] || 0;
+      }
       return { year: y, v };
     });
 
     const peak = seriesData.reduce((a, b) => (b.v > a.v ? b : a), seriesData[0]);
     const tot = d3sum(seriesData, (d) => d.v);
 
+    let swatchHtml = "";
+    if (isMulti) {
+      swatchHtml = `<div class="gw__inset-swatches">` + 
+        focusList.map((g) => `<span class="gw__inset-swatch" style="background:${genreColor(g, cb)}" title="${g}"></span>`).join("") +
+        `</div>`;
+    } else {
+      swatchHtml = `<span class="gw__inset-swatch" style="background:${color}"></span>`;
+    }
+
     insetEl.innerHTML = `
       <div class="gw__inset-title">
-        <span class="gw__inset-swatch" style="background:${color}"></span>${label}
+        ${swatchHtml}${label}
       </div>
       <div class="gw__inset-chart"></div>
       <p class="gw__inset-stat">Peak <b>${peak.year}</b> · ${fmtSales(peak.v)} &nbsp;·&nbsp; Total <b>${fmtSales(tot)}</b></p>
       <button class="gw__clear" aria-label="Clear focus">✕ Clear focus</button>`;
     insetEl.querySelector(".gw__clear").addEventListener("click", () =>
-      store.set({ focusedGenre: null })
+      store.set({ focusedGenres: [] })
     );
 
     // the linear line chart (Cleveland–McGill precision beside the disc)
@@ -382,8 +401,9 @@ export function createGenreWarp({ mountEl, data, store, shell }) {
   function onState(state) {
     // The disc + inset depend on region/focus/colorblind — not on the
     // year — so during playback only the spoke needs to move.
+    const focusJSON = JSON.stringify(state.focusedGenres || []);
     const visualChanged =
-      state.focusedGenre !== prev.focus ||
+      focusJSON !== prev.focus ||
       state.region !== prev.region ||
       state.colorblind !== prev.cb;
     if (visualChanged) {
@@ -391,16 +411,17 @@ export function createGenreWarp({ mountEl, data, store, shell }) {
       renderInset(state);
     }
     renderSpoke(state);
-    prev = { focus: state.focusedGenre, region: state.region, cb: state.colorblind };
+    prev = { focus: focusJSON, region: state.region, cb: state.colorblind };
   }
 
   function measureAndRender() {
     layout();
     const state = store.get();
+    const focusJSON = JSON.stringify(state.focusedGenres || []);
     renderDisc(state);
     renderSpoke(state);
     renderInset(state);
-    prev = { focus: state.focusedGenre, region: state.region, cb: state.colorblind };
+    prev = { focus: focusJSON, region: state.region, cb: state.colorblind };
   }
 
   return {

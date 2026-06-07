@@ -72,7 +72,7 @@ function getControllerLayout(consoleName, topGenres, cb) {
   const isWii = consoleName.includes("Wii");
   const isHandheld = consoleName.includes("DS") || consoleName.includes("3DS") || consoleName.includes("PSP") || consoleName.includes("GBA") || consoleName.includes("GB");
   
-  const btnColors = Array(8).fill("#3b374d");
+  const btnColors = Array(8).fill("#232230");
   const btnLabels = Array(8).fill("");
   
   topGenres.forEach((g, idx) => {
@@ -82,21 +82,23 @@ function getControllerLayout(consoleName, topGenres, cb) {
     }
   });
 
+  const btnClass = (idx) => btnLabels[idx] ? "cw-ctrl-btn is-active" : "cw-ctrl-btn-inactive";
+
   if (isWii) {
     return {
       type: "wiimote",
       svg: `
         <rect x="80" y="10" width="40" height="100" rx="6" fill="#1b1a24" stroke="#3b374d" stroke-width="2" />
-        <path class="cw-ctrl-btn" data-genre="${btnLabels[0]}" style="fill:${btnColors[0]}" d="M 97,16 L 103,16 L 103,22 L 97,22 Z" />
-        <path class="cw-ctrl-btn" data-genre="${btnLabels[1]}" style="fill:${btnColors[1]}" d="M 103,22 L 109,22 L 109,28 L 103,28 Z" />
-        <path class="cw-ctrl-btn" data-genre="${btnLabels[2]}" style="fill:${btnColors[2]}" d="M 97,28 L 103,28 L 103,34 L 97,34 Z" />
-        <path class="cw-ctrl-btn" data-genre="${btnLabels[3]}" style="fill:${btnColors[3]}" d="M 91,22 L 97,22 L 97,28 L 91,28 Z" />
-        <circle class="cw-ctrl-btn" data-genre="${btnLabels[4]}" style="fill:${btnColors[4]}" cx="100" cy="48" r="7" />
+        <path class="${btnClass(0)}" data-genre="${btnLabels[0]}" style="fill:${btnColors[0]}" d="M 97,16 L 103,16 L 103,22 L 97,22 Z" />
+        <path class="${btnClass(1)}" data-genre="${btnLabels[1]}" style="fill:${btnColors[1]}" d="M 103,22 L 109,22 L 109,28 L 103,28 Z" />
+        <path class="${btnClass(2)}" data-genre="${btnLabels[2]}" style="fill:${btnColors[2]}" d="M 97,28 L 103,28 L 103,34 L 97,34 Z" />
+        <path class="${btnClass(3)}" data-genre="${btnLabels[3]}" style="fill:${btnColors[3]}" d="M 91,22 L 97,22 L 97,28 L 91,28 Z" />
+        <circle class="${btnClass(4)}" data-genre="${btnLabels[4]}" style="fill:${btnColors[4]}" cx="100" cy="48" r="7" />
         <circle cx="92" cy="64" r="3.5" fill="#3b374d" />
         <circle cx="108" cy="64" r="3.5" fill="#3b374d" />
         <circle cx="100" cy="74" r="4.5" fill="#3b374d" />
-        <circle class="cw-ctrl-btn" data-genre="${btnLabels[5]}" style="fill:${btnColors[5]}" cx="100" cy="88" r="5" />
-        <circle class="cw-ctrl-btn" data-genre="${btnLabels[6]}" style="fill:${btnColors[6]}" cx="100" cy="99" r="5" />
+        <circle class="${btnClass(5)}" data-genre="${btnLabels[5]}" style="fill:${btnColors[5]}" cx="100" cy="88" r="5" />
+        <circle class="${btnClass(6)}" data-genre="${btnLabels[6]}" style="fill:${btnColors[6]}" cx="100" cy="99" r="5" />
       `
     };
   } else if (isHandheld) {
@@ -105,14 +107,14 @@ function getControllerLayout(consoleName, topGenres, cb) {
       svg: `
         <rect x="25" y="20" width="150" height="80" rx="10" fill="#1b1a24" stroke="#3b374d" stroke-width="2" />
         <rect x="65" y="28" width="70" height="52" rx="3" fill="#0d0a15" stroke="#252233" stroke-width="1.5" />
-        <path class="cw-ctrl-btn" data-genre="${btnLabels[0]}" style="fill:${btnColors[0]}" d="M 42,42 L 48,42 L 48,48 L 42,48 Z" />
-        <path class="cw-ctrl-btn" data-genre="${btnLabels[1]}" style="fill:${btnColors[1]}" d="M 48,48 L 54,48 L 54,54 L 48,54 Z" />
-        <path class="cw-ctrl-btn" data-genre="${btnLabels[2]}" style="fill:${btnColors[2]}" d="M 42,54 L 48,54 L 48,60 L 42,60 Z" />
-        <path class="cw-ctrl-btn" data-genre="${btnLabels[3]}" style="fill:${btnColors[3]}" d="M 36,48 L 42,48 L 42,54 L 36,54 Z" />
-        <circle class="cw-ctrl-btn" data-genre="${btnLabels[4]}" style="fill:${btnColors[4]}" cx="155" cy="42" r="5" />
-        <circle class="cw-ctrl-btn" data-genre="${btnLabels[5]}" style="fill:${btnColors[5]}" cx="167" cy="54" r="5" />
-        <circle class="cw-ctrl-btn" data-genre="${btnLabels[6]}" style="fill:${btnColors[6]}" cx="155" cy="66" r="5" />
-        <circle class="cw-ctrl-btn" data-genre="${btnLabels[7]}" style="fill:${btnColors[7]}" cx="143" cy="54" r="5" />
+        <path class="${btnClass(0)}" data-genre="${btnLabels[0]}" style="fill:${btnColors[0]}" d="M 42,42 L 48,42 L 48,48 L 42,48 Z" />
+        <path class="${btnClass(1)}" data-genre="${btnLabels[1]}" style="fill:${btnColors[1]}" d="M 48,48 L 54,48 L 54,54 L 48,54 Z" />
+        <path class="${btnClass(2)}" data-genre="${btnLabels[2]}" style="fill:${btnColors[2]}" d="M 42,54 L 48,54 L 48,60 L 42,60 Z" />
+        <path class="${btnClass(3)}" data-genre="${btnLabels[3]}" style="fill:${btnColors[3]}" d="M 36,48 L 42,48 L 42,54 L 36,54 Z" />
+        <circle class="${btnClass(4)}" data-genre="${btnLabels[4]}" style="fill:${btnColors[4]}" cx="155" cy="42" r="5" />
+        <circle class="${btnClass(5)}" data-genre="${btnLabels[5]}" style="fill:${btnColors[5]}" cx="167" cy="54" r="5" />
+        <circle class="${btnClass(6)}" data-genre="${btnLabels[6]}" style="fill:${btnColors[6]}" cx="155" cy="66" r="5" />
+        <circle class="${btnClass(7)}" data-genre="${btnLabels[7]}" style="fill:${btnColors[7]}" cx="143" cy="54" r="5" />
       `
     };
   } else {
@@ -122,14 +124,14 @@ function getControllerLayout(consoleName, topGenres, cb) {
         <path d="M 50,25 L 150,25 C 175,25 185,45 185,65 C 185,95 160,105 145,95 L 125,85 L 75,85 L 55,95 C 40,105 15,95 15,65 C 15,45 25,25 50,25 Z" fill="#1b1a24" stroke="#3b374d" stroke-width="2" />
         <circle cx="85" cy="70" r="10" fill="#100f17" stroke="#252233" stroke-width="1.5" />
         <circle cx="115" cy="70" r="10" fill="#100f17" stroke="#252233" stroke-width="1.5" />
-        <path class="cw-ctrl-btn" data-genre="${btnLabels[0]}" style="fill:${btnColors[0]}" d="M 52,43 L 58,43 L 58,49 L 52,49 Z" />
-        <path class="cw-ctrl-btn" data-genre="${btnLabels[1]}" style="fill:${btnColors[1]}" d="M 58,49 L 64,49 L 64,55 L 58,55 Z" />
-        <path class="cw-ctrl-btn" data-genre="${btnLabels[2]}" style="fill:${btnColors[2]}" d="M 52,55 L 58,55 L 58,61 L 52,61 Z" />
-        <path class="cw-ctrl-btn" data-genre="${btnLabels[3]}" style="fill:${btnColors[3]}" d="M 46,49 L 52,49 L 52,55 L 46,55 Z" />
-        <circle class="cw-ctrl-btn" data-genre="${btnLabels[4]}" style="fill:${btnColors[4]}" cx="145" cy="43" r="5" />
-        <circle class="cw-ctrl-btn" data-genre="${btnLabels[5]}" style="fill:${btnColors[5]}" cx="157" cy="55" r="5" />
-        <circle class="cw-ctrl-btn" data-genre="${btnLabels[6]}" style="fill:${btnColors[6]}" cx="145" cy="67" r="5" />
-        <circle class="cw-ctrl-btn" data-genre="${btnLabels[7]}" style="fill:${btnColors[7]}" cx="133" cy="55" r="5" />
+        <path class="${btnClass(0)}" data-genre="${btnLabels[0]}" style="fill:${btnColors[0]}" d="M 52,43 L 58,43 L 58,49 L 52,49 Z" />
+        <path class="${btnClass(1)}" data-genre="${btnLabels[1]}" style="fill:${btnColors[1]}" d="M 58,49 L 64,49 L 64,55 L 58,55 Z" />
+        <path class="${btnClass(2)}" data-genre="${btnLabels[2]}" style="fill:${btnColors[2]}" d="M 52,55 L 58,55 L 58,61 L 52,61 Z" />
+        <path class="${btnClass(3)}" data-genre="${btnLabels[3]}" style="fill:${btnColors[3]}" d="M 46,49 L 52,49 L 52,55 L 46,55 Z" />
+        <circle class="${btnClass(4)}" data-genre="${btnLabels[4]}" style="fill:${btnColors[4]}" cx="145" cy="43" r="5" />
+        <circle class="${btnClass(5)}" data-genre="${btnLabels[5]}" style="fill:${btnColors[5]}" cx="157" cy="55" r="5" />
+        <circle class="${btnClass(6)}" data-genre="${btnLabels[6]}" style="fill:${btnColors[6]}" cx="145" cy="67" r="5" />
+        <circle class="${btnClass(7)}" data-genre="${btnLabels[7]}" style="fill:${btnColors[7]}" cx="133" cy="55" r="5" />
       `
     };
   }
@@ -504,7 +506,7 @@ export function createConsoleWars({ mountEl, data, store, shell }) {
         btnLabel = idx === 4 ? "X" : idx === 5 ? "A" : idx === 6 ? "B" : idx === 7 ? "Y" : ["U", "R", "D", "L"][idx] || "";
       }
       return `
-        <li class="cw__genre-item" data-genre="${g.genre}">
+        <li class="cw__genre-item" data-genre="${g.genre}" style="cursor:pointer">
           <span class="cw__genre-btn-key">${btnLabel}</span>
           <span class="cw__genre-color-dot" style="background:${color}"></span>
           <span class="cw__genre-name" title="${g.genre}">${g.genre}</span>
@@ -545,10 +547,48 @@ export function createConsoleWars({ mountEl, data, store, shell }) {
 
     panelEl.querySelector(".cw__panel-back").addEventListener("click", clearSelection);
 
-    attachControllerTooltips();
+    attachConsolePanelEvents();
   }
 
-  function attachControllerTooltips() {
+  function applyConsolePanelFocus(focusedGenres = []) {
+    if (panelMode !== "console") return;
+    const hasFocus = focusedGenres.length > 0;
+    
+    // Update controller buttons
+    const btns = panelEl.querySelectorAll(".cw-ctrl-btn");
+    btns.forEach((btn) => {
+      const genre = btn.dataset.genre;
+      if (!genre) return;
+      const isFocused = !hasFocus || focusedGenres.includes(genre);
+      btn.classList.toggle("is-focused", isFocused && hasFocus);
+      btn.style.opacity = isFocused ? 1 : 0.25;
+      btn.style.filter = isFocused ? "none" : "grayscale(100%)";
+    });
+
+    // Update genre list items
+    const items = panelEl.querySelectorAll(".cw__genre-item");
+    items.forEach((item) => {
+      const genre = item.dataset.genre;
+      if (!genre) return;
+      const isFocused = !hasFocus || focusedGenres.includes(genre);
+      item.classList.toggle("is-focused", isFocused && hasFocus);
+      item.style.opacity = isFocused ? 1 : 0.25;
+      item.style.filter = isFocused ? "none" : "grayscale(100%)";
+    });
+  }
+
+  function toggleGenreFocus(genre) {
+    const current = store.get().focusedGenres || [];
+    const updated = current.includes(genre)
+      ? current.filter((g) => g !== genre)
+      : [...current, genre];
+    store.set({ focusedGenres: updated });
+  }
+
+  function attachConsolePanelEvents() {
+    const state = store.get();
+    applyConsolePanelFocus(state.focusedGenres);
+
     const btns = panelEl.querySelectorAll(".cw-ctrl-btn");
     btns.forEach((btn) => {
       const genre = btn.dataset.genre;
@@ -568,22 +608,53 @@ export function createConsoleWars({ mountEl, data, store, shell }) {
       btn.addEventListener("mouseleave", () => {
         tooltip.hide();
       });
+
+      btn.addEventListener("click", () => {
+        toggleGenreFocus(genre);
+      });
+    });
+
+    const items = panelEl.querySelectorAll(".cw__genre-item");
+    items.forEach((item) => {
+      const genre = item.dataset.genre;
+      if (!genre) return;
+
+      item.addEventListener("click", () => {
+        toggleGenreFocus(genre);
+      });
     });
   }
 
   function selectConsole(name) {
     selectedConsole = name;
     panelMode = "console";
-    rowEls.forEach((re) =>
-      re.gRow.classed("is-dimmed", re.name !== name)
-    );
+    rowEls.forEach((re) => {
+      re.gRow.classed("is-dimmed", re.name !== name);
+      re.gRow.classed("is-active", re.name === name);
+    });
     renderPanelConsole(name);
   }
 
   function clearSelection() {
+    const loadedCart = panelEl.querySelector(".cw__cartridge.is-inserted");
+    if (loadedCart && !REDUCED_MOTION) {
+      loadedCart.classList.remove("is-inserted");
+      loadedCart.classList.add("is-ejecting");
+      loadedCart.addEventListener("animationend", () => {
+        executeClear();
+      }, { once: true });
+    } else {
+      executeClear();
+    }
+  }
+
+  function executeClear() {
     selectedConsole = null;
     panelMode = "year";
-    rowEls.forEach((re) => re.gRow.classed("is-dimmed", false));
+    rowEls.forEach((re) => {
+      re.gRow.classed("is-dimmed", false);
+      re.gRow.classed("is-active", false);
+    });
     renderPanelYear(playYear(store.get()));
   }
 
@@ -619,6 +690,7 @@ export function createConsoleWars({ mountEl, data, store, shell }) {
     const focusJSON = JSON.stringify(state.focusedGenres || []);
     if (focusJSON !== prevFocus) {
       applyFocus(state.focusedGenres);
+      applyConsolePanelFocus(state.focusedGenres);
       prevFocus = focusJSON;
     }
     const yr = playYear(state);
@@ -634,6 +706,15 @@ export function createConsoleWars({ mountEl, data, store, shell }) {
     rebuild(w, h);
     const state = store.get();
     renderRidges(state, false);
+
+    // Re-apply console selection classes if a console is currently selected
+    if (selectedConsole) {
+      rowEls.forEach((re) => {
+        re.gRow.classed("is-dimmed", re.name !== selectedConsole);
+        re.gRow.classed("is-active", re.name === selectedConsole);
+      });
+    }
+
     applyFocus(state.focusedGenres); // bands are rebuilt on resize → reapply
     renderPlayhead(state);
   }

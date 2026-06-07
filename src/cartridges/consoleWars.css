@@ -218,7 +218,7 @@
   margin-top: 4px;
 }
 .cw__slot-receptacle {
-  height: 40px;
+  height: 48px;
   background: #090710;
   border: 2px solid var(--hairline);
   border-radius: 6px;
@@ -248,7 +248,7 @@
 }
 .cw__slot-prompt {
   font-family: var(--font-data);
-  font-size: 8.5px;
+  font-size: 9.5px;
   color: var(--ink-soft);
   letter-spacing: 0.5px;
   z-index: 2;
@@ -266,14 +266,14 @@
 }
 .cw__rack {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(58px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(66px, 1fr));
   gap: 6px;
   background: #110e1a;
   padding: 8px;
   border-radius: 6px;
   border: 1px solid var(--hairline);
   margin-top: 4px;
-  max-height: 120px;
+  max-height: 150px;
   overflow-y: auto;
 }
 
@@ -303,7 +303,7 @@
   border: 1px solid var(--hairline);
   border-radius: 2px;
   font-family: var(--font-data);
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -329,21 +329,21 @@
   display: flex;
   justify-content: center;
   background: rgba(13, 4, 40, 0.4);
-  padding: 8px;
+  padding: 10px;
   border-radius: 8px;
   border: 1px solid var(--hairline);
   margin-top: 4px;
 }
 .cw__cartridge.is-inserted {
-  width: 76px;
-  height: 44px;
+  width: 88px;
+  height: 52px;
   cursor: default;
   transform: translateY(0);
   animation: cw-insert-anim 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.2) forwards;
 }
 .cw__cartridge.is-ejecting {
-  width: 76px;
-  height: 44px;
+  width: 88px;
+  height: 52px;
   cursor: default;
   animation: cw-eject-anim 0.2s cubic-bezier(0.6, -0.28, 0.735, 0.045) forwards;
 }

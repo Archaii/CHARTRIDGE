@@ -273,12 +273,12 @@
   border-radius: 6px;
   border: 1px solid var(--hairline);
   margin-top: 4px;
-  max-height: 240px;
+  max-height: 210px;
   overflow-y: auto;
 }
 
 .cw__cartridge {
-  aspect-ratio: 1.15;
+  aspect-ratio: 1.35;
   border-radius: 4px 4px 1px 1px;
   border: 1px solid rgba(255,255,255,0.12);
   box-shadow: 0 2px 4px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.15);
@@ -335,15 +335,15 @@
   margin-top: 4px;
 }
 .cw__cartridge.is-inserted {
-  width: 88px;
-  height: 52px;
+  width: 80px;
+  height: 58px;
   cursor: default;
   transform: translateY(0);
   animation: cw-insert-anim 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.2) forwards;
 }
 .cw__cartridge.is-ejecting {
-  width: 88px;
-  height: 52px;
+  width: 80px;
+  height: 58px;
   cursor: default;
   animation: cw-eject-anim 0.2s cubic-bezier(0.6, -0.28, 0.735, 0.045) forwards;
 }

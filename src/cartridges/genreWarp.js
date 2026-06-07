@@ -53,7 +53,7 @@ export function createGenreWarp({ mountEl, data, store, shell }) {
   // angle scale: year → radians, 0 = top, clockwise (d3 radial convention)
   const angle = scaleLinear().domain([yearMin, yearMax]).range([0, TAU * ARC_FRACTION]);
 
-  let discWrap, sideEl, svg, gRings, gCdBg, gBands, gSpoke, gYearLabels, gHub, legend, insetEl;
+  let discWrap, sideEl, svg, gDisc, gRings, gCdBg, gBands, gSpoke, gYearLabels, gHub, gSpindle, legend, insetEl;
   let cx, cy, innerR, outerR, radius;
   let ro = null;
   let unsub = null;
@@ -104,11 +104,14 @@ export function createGenreWarp({ mountEl, data, store, shell }) {
     svg.append("defs").attr("class", "gw-defs");
 
     const g = svg.append("g").attr("class", "gw-root");
-    gRings = g.append("g").attr("class", "gw-rings");
-    gCdBg = g.append("g").attr("class", "gw-cd-bg");
-    gBands = g.append("g").attr("class", "gw-bands");
+    gDisc = g.append("g").attr("class", "gw-disc-group");
+    gCdBg = gDisc.append("g").attr("class", "gw-cd-bg");
+    gRings = gDisc.append("g").attr("class", "gw-rings");
+    gBands = gDisc.append("g").attr("class", "gw-bands");
+    gYearLabels = gDisc.append("g").attr("class", "gw-yearlabels");
+    gSpindle = gDisc.append("g").attr("class", "gw-spindle");
+    
     gSpoke = g.append("g").attr("class", "gw-spoke-g");
-    gYearLabels = g.append("g").attr("class", "gw-yearlabels");
     gHub = g.append("g").attr("class", "gw-hub-g");
 
     select(discWrap).append("div").attr("class", "gw__disc-overlay");
@@ -236,6 +239,7 @@ export function createGenreWarp({ mountEl, data, store, shell }) {
       .attr("r", innerR * 0.32);
 
     // 5. Clamping notches / teeth
+    gSpindle.selectAll("*").remove();
     const teethCount = 6;
     const teethRadius = innerR * 0.32;
     for (let i = 0; i < teethCount; i++) {
@@ -244,7 +248,7 @@ export function createGenreWarp({ mountEl, data, store, shell }) {
       const y1 = -Math.cos(angleRad) * (teethRadius - 1);
       const x2 = Math.sin(angleRad) * (teethRadius + 3);
       const y2 = -Math.cos(angleRad) * (teethRadius + 3);
-      gHub.append("line")
+      gSpindle.append("line")
         .attr("class", "gw-hub-tooth")
         .attr("x1", x1)
         .attr("y1", y1)
@@ -283,20 +287,39 @@ export function createGenreWarp({ mountEl, data, store, shell }) {
       .text((y) => y);
   }
 
-  // ---------- playhead spoke ----------
+  // ---------- playhead spoke and disc rotation ----------
   function renderSpoke(state) {
     const yr = Math.max(yearMin, Math.min(yearMax, Math.round(state.yearRange[1])));
-    const a = angle(yr);
+    
+    // Spoke is fixed pointing straight up (12 o'clock)
     const coords = {
-      x1: Math.sin(a) * innerR,
-      y1: -Math.cos(a) * innerR,
-      x2: Math.sin(a) * outerR,
-      y2: -Math.cos(a) * outerR,
+      x1: 0,
+      y1: -innerR,
+      x2: 0,
+      y2: -outerR,
     };
-    const sel = gSpoke.selectAll("line").data([0]).join("line").attr("class", "gw-spoke");
-    // Glide the spoke around the disc while the playhead sweeps.
+    gSpoke.selectAll("line").data([0]).join("line").attr("class", "gw-spoke").attr(coords);
+
+    // Rotate the disc counter-clockwise by angle(yr) to bring the current year to the top (12 o'clock)
+    const rotRad = -angle(yr);
+    const rotDeg = (rotRad * 180) / Math.PI;
+
+    // Glide the disc rotation continuously while the playhead sweeps.
     const dur = state.playing && !REDUCED_MOTION ? PLAYHEAD_MS : 0;
-    (dur ? sel.transition().duration(dur).ease(easeLinear) : sel.interrupt()).attr(coords);
+    if (dur) {
+      gDisc.transition()
+        .duration(dur)
+        .ease(easeLinear)
+        .attr("transform", `rotate(${rotDeg})`);
+    } else {
+      gDisc.interrupt().attr("transform", `rotate(${rotDeg})`);
+    }
+
+    // Toggle continuous spinning animation on the holographic sheen overlay
+    const overlay = discWrap.querySelector(".gw__disc-overlay");
+    if (overlay) {
+      overlay.classList.toggle("is-spinning", !!state.playing);
+    }
   }
 
   // ---------- side panel inset ----------
@@ -385,8 +408,17 @@ export function createGenreWarp({ mountEl, data, store, shell }) {
     const dy = my - cy;
     let a = Math.atan2(dx, -dy); // clockwise from top
     if (a < 0) a += TAU;
-    if (a > angle.range()[1]) return;
-    const yr = Math.max(yearMin, Math.min(yearMax, Math.round(angle.invert(a))));
+
+    // Adjust the cursor angle by subtracting the active disc rotation:
+    // a_disc = a - rotRad = a - (-angle(currentYear)) = a + angle(currentYear)
+    const state = store.get();
+    const currentYr = Math.max(yearMin, Math.min(yearMax, Math.round(state.yearRange[1])));
+    const rotRad = -angle(currentYr);
+    let a_disc = a - rotRad;
+    a_disc = ((a_disc % TAU) + TAU) % TAU;
+
+    if (a_disc > angle.range()[1]) return;
+    const yr = Math.max(yearMin, Math.min(yearMax, Math.round(angle.invert(a_disc))));
     const row = perYear.find((o) => o.year === yr);
     if (!row) return;
     tooltip.show(

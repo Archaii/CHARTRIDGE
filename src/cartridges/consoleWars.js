@@ -664,7 +664,7 @@ export function createConsoleWars({ mountEl, data, store, shell }) {
     const d = row.series.find((s) => s.year === yr);
     if (!d) return;
     const region = store.get().region;
-    const color = d.domFamily ? familyColor(d.domFamily, store.get().colorblind) : NEUTRAL;
+    const color = d.domGenre ? genreColor(d.domGenre, store.get().colorblind) : NEUTRAL;
     tooltip.show(
       `<div class="tooltip__title">${esc(row.name)} · ${yr}</div>
        <div class="tooltip__row"><span>${REGION_LABEL[region]} sales</span><b>${fmtSales(d.values[region])}</b></div>

@@ -9,14 +9,13 @@ import { csv, timeParse } from "d3";
 
 const parseDate = timeParse("%d-%m-%Y");
 
-// The usable analytical window. Outside this, sales/score coverage
-// collapses (the 2020 bucket is ~28 games and will lie to you).
+// The usable analytical window.
 export const YEAR_MIN = 1995;
-export const YEAR_MAX = 2017;
+export const YEAR_MAX = 2024;
 
 // CSV lives in public/data/. BASE_URL keeps the path correct in dev
 // and in a built site deployed under a subpath.
-const CSV_URL = `${import.meta.env.BASE_URL}data/video_games_sales.csv`;
+const CSV_URL = `${import.meta.env.BASE_URL}data/video_games_sales.csv?v=${Date.now()}`;
 
 /**
  * Fetch, parse and clean the dataset.

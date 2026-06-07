@@ -23,12 +23,15 @@ import {
   curveBasis,
   axisBottom,
   axisLeft,
-  brushX,
   max as d3max,
   min as d3min,
   extent,
   quadtree as d3quadtree,
   format,
+  forceSimulation,
+  forceX,
+  forceY,
+  timer,
 } from "d3";
 import { GENRES, genreFamily, familyColor, genreColor } from "../ui/palette.js";
 import { createLegend } from "../ui/legend.js";
@@ -89,7 +92,7 @@ export function createHighScore({ mountEl, data, store, shell }) {
 
   // view state
   let streamWrap, scatterWrap, streamSvg, scatterSvg, canvas, ctx, legend;
-  let gStreamBands, gStreamBandsBg, gStreamAxis, gBrush, brush;
+  let gStreamBands, gStreamBandsBg, gStreamAxis, gStreamSel;
   let gScatterAxis, gScatterHit;
   let xStream, xScatter, yScatter, streamT, streamB;
   let scL, scR, scT, scB;
@@ -98,8 +101,16 @@ export function createHighScore({ mountEl, data, store, shell }) {
   let ro = null;
   let unsub = null;
   let resizeRaf = 0;
-  let suppressBrush = false;
   let prev = {};
+  let streamDrag = null;
+  let cachedSeries = null;
+  let cachedPerYear = null;
+  let cachedYStream = null;
+  // physics / interaction state
+  let simulation = forceSimulation().stop();
+  let hoveredGenre = null;
+  let pulseTimer = null;
+  let pulsePhase = 0;
   // marquee (click-drag) selection on the scatter
   let gSel, selBadge;
   let selected = new Set(); // selected point refs (empty = none)
@@ -141,7 +152,7 @@ export function createHighScore({ mountEl, data, store, shell }) {
     gStreamBandsBg = streamSvg.append("g").attr("class", "hs-bands-bg");
     gStreamBands = streamSvg.append("g").attr("class", "hs-bands");
     gStreamAxis = streamSvg.append("g").attr("class", "hs-axis");
-    gBrush = streamSvg.append("g").attr("class", "hs-brush");
+    gStreamSel = streamSvg.append("g").attr("class", "hs-stream-sel");
 
     canvas = document.createElement("canvas");
     canvas.setAttribute("role", "img");
@@ -167,6 +178,12 @@ export function createHighScore({ mountEl, data, store, shell }) {
     scatterWrap.addEventListener("mousemove", onScatterMove);
     scatterWrap.addEventListener("mouseleave", onScatterLeave);
     window.addEventListener("mouseup", onScatterUp);
+
+    // Stream hover + drag-to-select
+    streamWrap.addEventListener("mousedown", onStreamDown);
+    streamWrap.addEventListener("mousemove", onStreamMove);
+    streamWrap.addEventListener("mouseleave", onStreamLeave);
+    window.addEventListener("mouseup", onStreamUp);
   }
 
   // ---------- layout ----------
@@ -185,10 +202,7 @@ export function createHighScore({ mountEl, data, store, shell }) {
       .attr("transform", `translate(0,${streamB})`)
       .call(axisBottom(xStream).tickValues(ticks).tickFormat(format("d")).tickSizeOuter(0));
 
-    brush = brushX()
-      .extent([[sL, streamT], [sw - sR, streamB]])
-      .on("brush end", onBrush);
-    gBrush.call(brush);
+
 
     // scatter canvas (device-pixel-ratio aware)
     const cw = scatterWrap.clientWidth || 600;
@@ -232,15 +246,6 @@ export function createHighScore({ mountEl, data, store, shell }) {
       .join((enter) => enter.append("path").attr("class", "hs-band"))
       .attr("fill", (s) => genreColor(s.key, cb))
       .classed("is-faded", (s) => hasFocus && !focusList.includes(s.key))
-      .on("click", (_e, s) => {
-        const current = store.get().focusedGenres || [];
-        const updated = current.includes(s.key)
-          ? current.filter((g) => g !== s.key)
-          : [...current, s.key];
-        store.set({ focusedGenres: updated });
-      })
-      .on("mousemove", (event, s) => onStreamHover(event, s.key))
-      .on("mouseleave", () => tooltip.hide())
       .transition()
       .duration(prev.region === region || REDUCED_MOTION ? 0 : 400)
       .attr("d", areaGen);
@@ -254,6 +259,11 @@ export function createHighScore({ mountEl, data, store, shell }) {
       .transition()
       .duration(prev.region === region || REDUCED_MOTION ? 0 : 400)
       .attr("d", areaGen);
+
+    // Cache for stream hover tooltips
+    cachedSeries = series;
+    cachedPerYear = perYear;
+    cachedYStream = yStream;
   }
 
   // ---------- scatter (canvas) ----------
@@ -272,56 +282,116 @@ export function createHighScore({ mountEl, data, store, shell }) {
       .range([scL, cw - scR])
       .clamp(true);
 
-    // project + classify which points are "lit" (in year & in focus)
     const lit = [];
+    const stateChanged = (state.region !== prev.region);
+
     for (const p of active) {
       p.sx = xScatter(regionVal(p, region)) + p.jx;
       p.sy = yScatter(p.score) + p.jy;
+      
+      const wasLit = p.isLit;
       p.inYear = p.year >= ys && p.year <= ye;
       p.inFocus = !hasFocus || focusList.includes(p.genre);
-      if (p.inYear && p.inFocus) lit.push(p);
+      p.isLit = p.inYear && p.inFocus;
+      
+      if (p.isLit) lit.push(p);
+
+      const needsSpawn = stateChanged || (p.isLit && !wasLit);
+      
+      if (needsSpawn) {
+         let spawnX = xStream ? xStream(p.year) : cw / 2;
+         let spawnY = -20;
+         if (cachedSeries && cachedYStream) {
+           const yr = Math.max(yearMin, Math.min(yearMax, p.year));
+           const idx = years.indexOf(yr);
+           if (idx >= 0) {
+              const s = cachedSeries.find(s => s.key === p.genre);
+              if (s) {
+                 spawnY = cachedYStream(s[idx][0]) - (streamWrap.clientHeight || 180);
+              }
+           }
+         }
+         p.x = spawnX;
+         p.y = spawnY;
+         p.vx = 0;
+         p.vy = 0;
+      } else if (p.x === undefined) {
+         p.x = p.sx;
+         p.y = p.sy;
+      }
     }
     litPoints = lit;
-    const hasSel = selected.size > 0;
 
+    simulation
+       .nodes(active)
+       .force("x", forceX((d) => d.sx).strength(0.12))
+       .force("y", forceY((d) => d.sy).strength(0.12))
+       .alpha(1)
+       .restart();
+       
+    simulation.on("tick", renderCanvasFrame);
+
+    drawScatterAxes(cw, ch);
+  }
+
+  function renderCanvasFrame() {
+    const state = store.get();
+    const { cb, region } = state;
+    const hasSel = selected.size > 0;
+    const cw = canvas.width / dpr;
+    const ch = canvas.height / dpr;
+    
     ctx.clearRect(0, 0, cw, ch);
+
+    const active = simulation.nodes();
+    
     // tier A: faded context (out of year / wrong focus)
     for (const p of active) {
-      if (p.inYear && p.inFocus) continue;
+      if (p.isLit) continue;
       const [r, g, b] = genreRgb(p.genre, cb);
       const gray = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
       const opacity = !p.inYear ? 0.045 : 0.1;
       ctx.fillStyle = `rgba(${gray},${gray},${gray},${opacity})`;
-      dot(p);
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, DOT_R, 0, Math.PI * 2);
+      ctx.fill();
     }
-    // tier B: lit points — dim when a selection is active and excludes them
-    for (const p of lit) {
-      if (hasSel && selected.has(p)) continue; // drawn bright in tier C
+    
+    // tier B: lit points
+    for (const p of litPoints) {
+      if (hasSel && selected.has(p)) continue;
       const [r, g, b] = genreRgb(p.genre, cb);
-      ctx.fillStyle = `rgba(${r},${g},${b},${hasSel ? 0.1 : 0.82})`;
-      dot(p);
+      
+      let radius = DOT_R;
+      let opacity = hasSel ? 0.1 : 0.82;
+      
+      if (hoveredGenre === p.genre) {
+         radius += Math.sin(pulsePhase * Math.PI * 2) * 2;
+         opacity = 1.0;
+      }
+      
+      ctx.fillStyle = `rgba(${r},${g},${b},${opacity})`;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
+      ctx.fill();
     }
-    // tier C: selected points — bright, larger, with a white halo
+    
+    // tier C: selected points
     if (hasSel) {
-      for (const p of lit) {
+      for (const p of litPoints) {
         if (!selected.has(p)) continue;
         const [r, g, b] = genreRgb(p.genre, cb);
         ctx.fillStyle = `rgba(${r},${g},${b},0.98)`;
-        dot(p, DOT_R + 1.6);
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, DOT_R + 1.6, 0, Math.PI * 2);
+        ctx.fill();
         ctx.strokeStyle = "rgba(255,255,255,0.9)";
         ctx.lineWidth = 1;
         ctx.stroke();
       }
     }
-
-    qt = d3quadtree().x((d) => d.sx).y((d) => d.sy).addAll(lit);
-    drawScatterAxes(cw, ch);
-  }
-
-  function dot(p, r = DOT_R) {
-    ctx.beginPath();
-    ctx.arc(p.sx, p.sy, r, 0, Math.PI * 2);
-    ctx.fill();
+    
+    qt = d3quadtree().x((d) => d.x).y((d) => d.y).addAll(litPoints);
   }
 
   function drawScatterAxes(cw, ch) {
@@ -368,44 +438,9 @@ export function createHighScore({ mountEl, data, store, shell }) {
       .attr("x", cw - scR - 4).attr("y", scT - 6).attr("text-anchor", "end").text("blockbusters");
   }
 
-  function onStreamHover(event, genre) {
-    const [mx] = pointer(event, streamSvg.node());
-    const yr = Math.max(yearMin, Math.min(yearMax, Math.round(xStream.invert(mx))));
-    
-    // Find the sales data for this year & region
-    const region = store.get().region;
-    const cell = gyr.table[region]?.[yr] || {};
-    const salesVal = cell[genre] || 0;
-    
-    tooltip.show(
-      `<div class="tooltip__title">${genre} · ${yr}</div>
-       <div class="tooltip__row"><span>${REGION_LABEL[region]} Sales</span><b>${fmtSales(salesVal)}</b></div>`,
-      event.clientX,
-      event.clientY
-    );
-  }
-
-  // ---------- brush ----------
-  function onBrush(event) {
-    if (suppressBrush || !event.selection) return;
-    const [x0, x1] = event.selection;
-    let s = Math.round(xStream.invert(x0));
-    let e = Math.round(xStream.invert(x1));
-    s = Math.max(yearMin, Math.min(yearMax, s));
-    e = Math.max(yearMin, Math.min(yearMax, e));
-    if (s > e) [s, e] = [e, s];
-    const [cs, ce] = store.get().yearRange;
-    if (s !== cs || e !== ce) store.set({ yearRange: [s, e] });
-  }
-
-  function reflectBrush(state) {
-    if (!brush) return;
+  // ---------- stream selection + hover ----------
+  function reflectSelection(state) {
     const [s, e] = state.yearRange;
-    suppressBrush = true;
-    if (s === e) gBrush.call(brush.move, null);
-    else gBrush.call(brush.move, [xStream(s), xStream(e)]);
-    suppressBrush = false;
-
     gStreamBands.attr("clip-path", "url(#hs-stream-clip)");
     gStreamBandsBg.style("display", null);
     const x0 = xStream(s);
@@ -413,6 +448,130 @@ export function createHighScore({ mountEl, data, store, shell }) {
     streamSvg.select("#hs-stream-clip-rect")
       .attr("x", x0)
       .attr("width", Math.max(0, x1 - x0));
+    // Selection edge indicators
+    gStreamSel.selectAll(".hs-sel-edge").remove();
+    if (s !== yearMin || e !== yearMax) {
+      gStreamSel.append("line").attr("class", "hs-sel-edge")
+        .attr("x1", x0).attr("x2", x0).attr("y1", streamT).attr("y2", streamB);
+      gStreamSel.append("line").attr("class", "hs-sel-edge")
+        .attr("x1", x1).attr("x2", x1).attr("y1", streamT).attr("y2", streamB);
+    }
+  }
+
+  // ---------- stream hover + drag-to-select ----------
+  function findGenreAtPoint(mx, my) {
+    if (!cachedSeries || !cachedYStream) return null;
+    const yr = Math.max(yearMin, Math.min(yearMax, Math.round(xStream.invert(mx))));
+    const idx = years.indexOf(yr);
+    if (idx < 0) return null;
+    for (let i = cachedSeries.length - 1; i >= 0; i--) {
+      const s = cachedSeries[i];
+      const d = s[idx];
+      const y1px = cachedYStream(d[1]);
+      const y0px = cachedYStream(d[0]);
+      if (my >= y1px && my <= y0px) return s.key;
+    }
+    return null;
+  }
+
+  function onStreamDown(event) {
+    if (event.button !== 0) return;
+    const [mx, my] = pointer(event, streamSvg.node());
+    const [xL, xR] = xStream.range();
+    if (mx < xL || mx > xR || my < streamT || my > streamB) return;
+    streamDrag = { x0: mx, moved: false };
+    tooltip.hide();
+  }
+
+  function setHoveredGenre(genre) {
+    if (genre === hoveredGenre) return;
+    hoveredGenre = genre;
+    if (hoveredGenre && !pulseTimer) {
+      pulseTimer = timer((elapsed) => {
+        pulsePhase = (elapsed % 1000) / 1000;
+        renderCanvasFrame();
+      });
+    } else if (!hoveredGenre && pulseTimer) {
+      pulseTimer.stop();
+      pulseTimer = null;
+      pulsePhase = 0;
+      renderCanvasFrame();
+    }
+  }
+
+  function onStreamMove(event) {
+    const [mx, my] = pointer(event, streamSvg.node());
+
+    if (streamDrag) {
+      if (Math.abs(mx - streamDrag.x0) > 3) streamDrag.moved = true;
+      if (streamDrag.moved) {
+        const [xL, xR] = xStream.range();
+        const left = Math.max(xL, Math.min(streamDrag.x0, mx));
+        const right = Math.min(xR, Math.max(streamDrag.x0, mx));
+        gStreamSel.selectAll("rect.hs-stream-drag").data([0]).join("rect")
+          .attr("class", "hs-stream-drag")
+          .attr("x", left).attr("y", streamT)
+          .attr("width", right - left).attr("height", streamB - streamT);
+      }
+      setHoveredGenre(null);
+      return;
+    }
+
+    const [xL, xR] = xStream.range();
+    if (mx < xL || mx > xR || my < streamT || my > streamB) {
+      tooltip.hide();
+      setHoveredGenre(null);
+      return;
+    }
+    const genre = findGenreAtPoint(mx, my);
+    setHoveredGenre(genre);
+    
+    if (!genre) { tooltip.hide(); return; }
+    const yr = Math.max(yearMin, Math.min(yearMax, Math.round(xStream.invert(mx))));
+    const idx = years.indexOf(yr);
+    const val = idx >= 0 && cachedPerYear ? (cachedPerYear[idx]?.[genre] || 0) : 0;
+    const region = store.get().region;
+    const cb = store.get().colorblind;
+    const color = genreColor(genre, cb);
+    tooltip.show(
+      `<div class="tooltip__title">${esc(genre)} · ${yr}</div>
+       <div class="tooltip__row"><span><span class="tooltip__swatch" style="background:${color}"></span>${REGION_LABEL[region]} sales</span><b>${fmtSales(val)}</b></div>`,
+      event.clientX,
+      event.clientY
+    );
+  }
+
+  function onStreamLeave() {
+    if (!streamDrag) tooltip.hide();
+    setHoveredGenre(null);
+  }
+
+  function onStreamUp(event) {
+    if (!streamDrag) return;
+    const d = streamDrag;
+    streamDrag = null;
+    gStreamSel.selectAll("rect.hs-stream-drag").remove();
+
+    if (d.moved) {
+      const [mx] = pointer(event, streamSvg.node());
+      const [xL, xR] = xStream.range();
+      let s = Math.round(xStream.invert(Math.max(xL, Math.min(d.x0, mx))));
+      let e = Math.round(xStream.invert(Math.min(xR, Math.max(d.x0, mx))));
+      s = Math.max(yearMin, Math.min(yearMax, s));
+      e = Math.max(yearMin, Math.min(yearMax, e));
+      if (s > e) [s, e] = [e, s];
+      store.set({ yearRange: [s, e] });
+    } else {
+      const [mx, my] = pointer(event, streamSvg.node());
+      const genre = findGenreAtPoint(mx, my);
+      if (genre) {
+        const current = store.get().focusedGenres || [];
+        const updated = current.includes(genre)
+          ? current.filter((g) => g !== genre)
+          : [...current, genre];
+        store.set({ focusedGenres: updated });
+      }
+    }
   }
 
   // ---------- scatter hover / click / marquee selection ----------
@@ -552,7 +711,7 @@ export function createHighScore({ mountEl, data, store, shell }) {
     const focusJSON = JSON.stringify(state.focusedGenres || []);
     renderStream(state);
     renderScatter(state);
-    reflectBrush(state);
+    reflectSelection(state);
     prev = { region: state.region, focus: focusJSON, cb: state.colorblind };
   }
 
@@ -566,6 +725,10 @@ export function createHighScore({ mountEl, data, store, shell }) {
     ) {
       renderStream(state);
     }
+    
+    // update year range so scatter can tell what changed
+    const ys = state.yearRange[0];
+    const ye = state.yearRange[1];
     // a region switch re-weights the x-axis → an old pixel selection no
     // longer maps to the same titles, so drop it.
     if (state.region !== prev.region && selected.size) {
@@ -573,8 +736,13 @@ export function createHighScore({ mountEl, data, store, shell }) {
       syncSelectionUI();
     }
     renderScatter(state); // cheap; reflects year/region/focus/selection
-    reflectBrush(state);
-    prev = { region: state.region, focus: focusJSON, cb: state.colorblind };
+    reflectSelection(state);
+    prev = { 
+      region: state.region, 
+      focus: focusJSON, 
+      cb: state.colorblind,
+      yearRange: [ys, ye]
+    };
   }
 
   function measureAndRender() {
@@ -604,6 +772,8 @@ export function createHighScore({ mountEl, data, store, shell }) {
     },
 
     destroy() {
+      if (pulseTimer) pulseTimer.stop();
+      simulation.stop();
       cancelAnimationFrame(resizeRaf);
       ro?.disconnect();
       unsub?.();
@@ -613,6 +783,10 @@ export function createHighScore({ mountEl, data, store, shell }) {
       scatterWrap.removeEventListener("mousemove", onScatterMove);
       scatterWrap.removeEventListener("mouseleave", onScatterLeave);
       window.removeEventListener("mouseup", onScatterUp);
+      streamWrap.removeEventListener("mousedown", onStreamDown);
+      streamWrap.removeEventListener("mousemove", onStreamMove);
+      streamWrap.removeEventListener("mouseleave", onStreamLeave);
+      window.removeEventListener("mouseup", onStreamUp);
       // Leaving the cartridge: hand the rail back to the all-time list.
       shell?.setLeaderboard?.(data.leaderboard);
       mountEl.innerHTML = "";

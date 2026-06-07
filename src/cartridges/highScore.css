@@ -43,12 +43,8 @@
   height: 100%;
 }
 .hs-band {
-  cursor: pointer;
-  transition: opacity 0.2s ease, filter 0.2s ease;
-}
-.hs-band:hover {
-  opacity: 1 !important;
-  filter: brightness(1.12) drop-shadow(0 0 2px rgba(255, 255, 255, 0.15));
+  cursor: crosshair;
+  transition: opacity 0.2s ease;
 }
 .hs-band.is-faded {
   opacity: 0.15;
@@ -63,15 +59,19 @@
 .hs-axis line {
   stroke: var(--axis-line);
 }
-/* brush styling */
-.hs-brush .selection {
+/* stream selection + drag */
+.hs-stream-drag {
   fill: rgba(5, 217, 232, 0.12);
   stroke: var(--cyan);
-  stroke-width: 1.5;
-  stroke-dasharray: 3 2;
+  stroke-width: 1;
+  pointer-events: none;
 }
-.hs-brush .handle {
-  fill: var(--accent);
+.hs-sel-edge {
+  stroke: var(--cyan);
+  stroke-width: 1.5;
+  stroke-dasharray: 3 3;
+  opacity: 0.6;
+  pointer-events: none;
 }
 
 .hs-bands-bg {

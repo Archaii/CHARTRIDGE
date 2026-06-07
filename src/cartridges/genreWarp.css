@@ -220,6 +220,17 @@
   display: none;
   z-index: 10;
 }
+.gw__disc-overlay.is-spinning {
+  animation: gw-spin-overlay 12s linear infinite;
+}
+@keyframes gw-spin-overlay {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
 .gw-cd-body {
   fill: #15131c;
   stroke: rgba(255, 255, 255, 0.08);

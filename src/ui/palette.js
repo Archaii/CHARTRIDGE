@@ -75,30 +75,30 @@ const PALETTE_CB = {
 const NEUTRAL = "#9aa0a6";
 
 const GENRE_COLORS = {
-  Action: "#ff6b35",
-  "Action-Adventure": "#ff9e79",
-  Adventure: "#cc4e1d",
+  Action: "#ff3c00",             // Electric red-orange
+  "Action-Adventure": "#ff8a00",   // Neon orange
+  Adventure: "#b21e35",          // Deep vibrant red
   
-  Shooter: "#05d9e8",
-  Fighting: "#3f88c5",
-  Sports: "#005f73",
-  Racing: "#00b4d8",
+  Shooter: "#00f5ff",            // Ultra-bright cyan
+  Fighting: "#3a86ff",           // Neon royal blue
+  Sports: "#4ea8de",             // Bright sky blue
+  Racing: "#90e0ef",             // Pale electric blue
   
-  Strategy: "#00f5a0",
-  Simulation: "#2a9d8f",
-  Puzzle: "#70e000",
-  "Board Game": "#38b000",
+  Strategy: "#00f5a0",           // Neon mint green
+  Simulation: "#00f5d4",         // Neon turquoise
+  Puzzle: "#70e000",             // Neon lime green
+  "Board Game": "#38b000",       // Vibrant grass green
   
-  "Role-Playing": "#c77dff",
-  "Visual Novel": "#9b5de5",
-  Platform: "#e0aaff",
+  "Role-Playing": "#c77dff",     // Neon light purple
+  "Visual Novel": "#7209b7",     // Deep electric violet
+  Platform: "#f72585",           // Neon hot pink-purple
   
-  Party: "#ffd23f",
-  Music: "#ff9f1c",
-  Misc: "#e9c46a",
-  Education: "#ffb703",
+  Party: "#ffee32",              // Bright neon yellow
+  Music: "#ff9100",              // Neon amber orange
+  Misc: "#ffd60a",               // Bright gold
+  Education: "#ffd166",          // Pastel orange-yellow
   
-  MMO: "#ff2a6d",
+  MMO: "#ff2a6d",                // Neon magenta
 };
 
 /** Map a genre string to its family key (or "social" as a safe default). */

@@ -7,7 +7,7 @@
 // dependency-free module keeps d3 out of this graph.
 
 // Default analytical window mirrors loader.js (YEAR_MIN/YEAR_MAX).
-const DEFAULT_YEAR_RANGE = [1995, 2017];
+const DEFAULT_YEAR_RANGE = [1995, 2024];
 
 const state = {
   cartridge: "menu", // "menu" | "highScore" | "consoleWars" | "genreWarp"

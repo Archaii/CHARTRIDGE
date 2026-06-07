@@ -107,3 +107,32 @@ body {
     transition-duration: 0.001ms !important;
   }
 }
+
+/* Custom scrollbar styling aligned with the synthwave CRT screen theme */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--screen);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(185, 103, 255, 0.25); /* Semi-transparent purple neon accent */
+  border-radius: 4px;
+  border: 1px solid rgba(185, 103, 255, 0.1);
+  transition: background 0.15s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(185, 103, 255, 0.5); /* Glowing purple on hover */
+  box-shadow: 0 0 6px rgba(185, 103, 255, 0.3);
+}
+
+/* Firefox scrollbar support */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(185, 103, 255, 0.25) var(--screen);
+}

@@ -44,14 +44,44 @@ All three read one shared state store, so the **region** and **focused genre fam
 
 ## Getting started
 
-Requires **Node.js 18+**.
+**Required environment & libraries**
+
+| Requirement | Version | Notes |
+|---|---|---|
+| Node.js | **18 or newer** | includes `npm` |
+| Vite | 5.x | dev server + static build (installed by `npm install`) |
+| D3.js | v7 | the only runtime dependency (installed by `npm install`) |
+
+No backend, database, or API keys are needed — it is a static site that reads one local CSV.
+
+**Run it**
 
 ```bash
-npm install        # install dependencies
-npm run dev        # start the dev server (opens http://localhost:5173)
-npm run build      # produce a static dist/
-npm run preview    # preview the production build locally
+npm install        # install dependencies (Vite + D3) — first time only
+npm run dev        # start the dev server, opens http://localhost:5173
+npm run build      # produce a static dist/ (deployable to any static host)
+npm run preview    # serve the built dist/ locally
 ```
+
+**Entry point:** [index.html](index.html) is the page that loads the app; it imports
+[src/main.js](src/main.js), which boots the console, loads the data, and shows the
+cartridge menu. (You don't open `index.html` directly — run `npm run dev`, which
+serves it.)
+
+### Accessing the data
+
+The dataset is **bundled with this repository** — no download or API is required:
+
+```
+public/data/video_games_sales.csv      # ~8 MB, loaded once on boot
+```
+
+- **Original source:** *Video Game Sales 1980–2024* by Divekar (2026), published on
+  Kaggle. Replace this line with the exact dataset URL: `[dataset link]`.
+- The loader fetches it at runtime from `public/data/` (see
+  [src/data/loader.js](src/data/loader.js)); to swap in a fresh copy, replace that
+  file (same columns: `title, console, genre, publisher, developer, critic_score,
+  total_sales, na_sales, jp_sales, pal_sales, other_sales, release_date`).
 
 ---
 

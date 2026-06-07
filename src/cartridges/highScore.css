@@ -44,7 +44,11 @@
 }
 .hs-band {
   cursor: pointer;
-  transition: opacity 0.2s ease;
+  transition: opacity 0.2s ease, filter 0.2s ease;
+}
+.hs-band:hover {
+  opacity: 1 !important;
+  filter: brightness(1.12) drop-shadow(0 0 2px rgba(255, 255, 255, 0.15));
 }
 .hs-band.is-faded {
   opacity: 0.15;

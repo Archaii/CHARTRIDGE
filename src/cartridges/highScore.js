@@ -239,6 +239,8 @@ export function createHighScore({ mountEl, data, store, shell }) {
           : [...current, s.key];
         store.set({ focusedGenres: updated });
       })
+      .on("mousemove", (event, s) => onStreamHover(event, s.key))
+      .on("mouseleave", () => tooltip.hide())
       .transition()
       .duration(prev.region === region || REDUCED_MOTION ? 0 : 400)
       .attr("d", areaGen);
@@ -364,6 +366,23 @@ export function createHighScore({ mountEl, data, store, shell }) {
       .attr("x", scL + 6).attr("y", scT - 6).text("hidden gems");
     gScatterAxis.append("text").attr("class", "hs-quad-label")
       .attr("x", cw - scR - 4).attr("y", scT - 6).attr("text-anchor", "end").text("blockbusters");
+  }
+
+  function onStreamHover(event, genre) {
+    const [mx] = pointer(event, streamSvg.node());
+    const yr = Math.max(yearMin, Math.min(yearMax, Math.round(xStream.invert(mx))));
+    
+    // Find the sales data for this year & region
+    const region = store.get().region;
+    const cell = gyr.table[region]?.[yr] || {};
+    const salesVal = cell[genre] || 0;
+    
+    tooltip.show(
+      `<div class="tooltip__title">${genre} · ${yr}</div>
+       <div class="tooltip__row"><span>${REGION_LABEL[region]} Sales</span><b>${fmtSales(salesVal)}</b></div>`,
+      event.clientX,
+      event.clientY
+    );
   }
 
   // ---------- brush ----------

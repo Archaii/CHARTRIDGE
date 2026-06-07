@@ -154,10 +154,21 @@ export function createGenreWarp({ mountEl, data, store, shell }) {
     // and the playback/dragging animation moves clockwise in a natural, easy-to-follow way.
     angle.domain([yearMin, yearMax]);
 
-    // Filter data to selected range
-    const perYear = perYearFor(region).filter((d) => d.year >= startYear && d.year <= endYear);
+    // Keep all years in data, but zero out sales for years outside the selected range.
+    // This maintains a constant number of points in the D3 radial area path,
+    // which completely eliminates path-morphing wobble and lets the disc area
+    // scale up smoothly from the center hub.
+    const perYear = perYearFor(region).map((d) => {
+      const inRange = d.year >= startYear && d.year <= endYear;
+      const o = { year: d.year };
+      for (const g of GENRES) {
+        o[g] = inRange ? (d[g] || 0) : 0;
+      }
+      return o;
+    });
     const series = d3stack().keys(GENRES)(perYear);
-    const maxTotal = d3max(perYear, (o) => d3sum(GENRES, (g) => o[g])) || 1;
+    const activeYearsData = perYear.filter((d) => d.year >= startYear && d.year <= endYear);
+    const maxTotal = d3max(activeYearsData, (o) => d3sum(GENRES, (g) => o[g])) || 1;
     radius.domain([0, maxTotal]);
 
     gCdBg
@@ -685,6 +696,9 @@ export function createGenreWarp({ mountEl, data, store, shell }) {
 
     if (a > angle.range()[1]) return;
     const yr = Math.max(yearMin, Math.min(yearMax, Math.round(angle.invert(a))));
+    const [ys, ye] = store.get().yearRange;
+    if (yr < ys || yr > ye) return;
+
     const row = perYear.find((o) => o.year === yr);
     if (!row) return;
     tooltip.show(

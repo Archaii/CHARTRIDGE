@@ -43,12 +43,11 @@
   --hairline: rgba(233, 228, 255, 0.1);
 
   /* --- genre families, tuned to glow on dark --- */
-  --fam-action: #ff6b35; /* Action-driven  — neon orange */
-  --fam-compete: #05d9e8; /* Competitive    — cyan */
-  --fam-systems: #00f5a0; /* Systems        — neon green */
-  --fam-story: #c77dff; /* Story          — neon purple */
-  --fam-social: #ffd23f; /* Social/Casual  — amber */
-  --fam-online: #ff2a6d; /* Online (MMO)   — magenta */
+  --fam-combat: #ff3c00; /* Action & Combat  — neon red-orange */
+  --fam-mind: #00f5a0; /* Strategy & Mind  — neon mint green */
+  --fam-story: #c77dff; /* Role-Playing & Story — neon purple */
+  --fam-speed: #00f5ff; /* Sports & Speed — neon cyan-blue */
+  --fam-casual: #ffd23f; /* Casual & Creative — neon yellow */
 
   /* --- typography --- */
   --font-display: "Press Start 2P", monospace; /* headings ONLY */

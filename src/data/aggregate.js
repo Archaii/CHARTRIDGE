@@ -35,6 +35,7 @@ export function buildAggregates(games, raw) {
   const bucket = (name) => (topSet.has(name) ? name : OTHER);
 
   return {
+    games,
     genreYearRegion: rollupGenreYearRegion(games, years, genres),
     consoleYear,
     scoredGames: games.filter((d) => d.score != null && d.sales != null),

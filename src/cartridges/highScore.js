@@ -33,12 +33,12 @@ import {
   forceY,
   timer,
 } from "d3";
-import { GENRES, genreFamily, familyColor, genreColor } from "../ui/palette.js";
+import { GENRES, genreFamily, familyColor, genreColor, toggleFamily } from "../ui/palette.js";
 import { createLegend } from "../ui/legend.js";
 import { tooltip } from "../ui/tooltip.js";
 
 const REGION_LABEL = { na: "NA", jp: "JP", pal: "PAL", other: "Other", total: "Total" };
-const REGION_COLORS = { na: "#3f88c5", jp: "#e4572e", pal: "#2a9d8f", other: "#9b5de5" };
+const REGION_COLORS = { na: "#05d9e8", jp: "#ff2a6d", pal: "#b967ff", other: "#00f5a0" };
 const DOT_R = 2.6;
 const REDUCED_MOTION = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -336,7 +336,7 @@ export function createHighScore({ mountEl, data, store, shell }) {
 
   function renderCanvasFrame() {
     const state = store.get();
-    const { cb, region } = state;
+    const { colorblind: cb, region } = state;
     const hasSel = selected.size > 0;
     const cw = canvas.width / dpr;
     const ch = canvas.height / dpr;
@@ -395,6 +395,7 @@ export function createHighScore({ mountEl, data, store, shell }) {
   }
 
   function drawScatterAxes(cw, ch) {
+    const region = store.get().region;
     gScatterAxis.selectAll("*").remove();
     // y (score)
     gScatterAxis
@@ -415,7 +416,7 @@ export function createHighScore({ mountEl, data, store, shell }) {
       .attr("x", cw - scR)
       .attr("y", ch - scB + 26)
       .attr("text-anchor", "end")
-      .text("Total sales (log, M) →");
+      .text(`${REGION_LABEL[region]} sales (log, M) →`);
     gScatterAxis
       .append("text")
       .attr("class", "hs-axis-label")
@@ -566,9 +567,7 @@ export function createHighScore({ mountEl, data, store, shell }) {
       const genre = findGenreAtPoint(mx, my);
       if (genre) {
         const current = store.get().focusedGenres || [];
-        const updated = current.includes(genre)
-          ? current.filter((g) => g !== genre)
-          : [...current, genre];
+        const updated = toggleFamily(current, genreFamily(genre));
         store.set({ focusedGenres: updated });
       }
     }
@@ -661,9 +660,7 @@ export function createHighScore({ mountEl, data, store, shell }) {
       const p = nearest(event);
       if (p) {
         const current = store.get().focusedGenres || [];
-        const updated = current.includes(p.genre)
-          ? current.filter((g) => g !== p.genre)
-          : [...current, p.genre];
+        const updated = toggleFamily(current, genreFamily(p.genre));
         store.set({ focusedGenres: updated });
       } else if (selected.size) {
         clearSelection();
@@ -679,16 +676,51 @@ export function createHighScore({ mountEl, data, store, shell }) {
 
   // Reflect the current selection into the on-canvas badge AND the
   // cabinet's HIGH SCORES rail (ranked by critic score). With nothing
-  // selected, the rail reverts to the all-time top sellers.
+  // selected, the rail reflects the active filters.
   function syncSelectionUI() {
+    const state = store.get();
+    const region = state.region;
+    const [ys, ye] = state.yearRange;
+    const focusList = state.focusedGenres || [];
+    const hasFocus = focusList.length > 0;
+
     const arr = [...selected];
     if (!arr.length) {
       selBadge.classList.remove("is-on");
-      shell?.setLeaderboard?.(data.leaderboard);
+
+      // Filter raw games from data.games using the active filters
+      const filtered = (data.games || []).filter((g) => {
+        if (g.year < ys || g.year > ye) return false;
+        if (hasFocus && !focusList.includes(g.genre)) return false;
+        const v = regionVal(g, region);
+        return v > 0;
+      });
+
+      // Sort by the selected region's sales descending
+      filtered.sort((a, b) => regionVal(b, region) - regionVal(a, region));
+
+      // Get top 8
+      const topGames = filtered.slice(0, 8).map((g) => ({
+        title: g.title,
+        console: g.console,
+        genre: g.genre,
+        year: g.year,
+        sales: regionVal(g, region),
+        score: g.score,
+      }));
+
+      const totalSales = filtered.reduce((acc, g) => acc + regionVal(g, region), 0);
+      const summary = `${fmtInt(filtered.length)} titles · Σ ${fmtSales(totalSales)}`;
+
+      shell?.setLeaderboard?.(topGames, {
+        title: "HIGH SCORES",
+        metric: "sales",
+        summary: summary,
+      });
       return;
     }
     const avg = arr.reduce((s, p) => s + p.score, 0) / arr.length;
-    const tot = arr.reduce((s, p) => s + regionVal(p, store.get().region), 0);
+    const tot = arr.reduce((s, p) => s + regionVal(p, region), 0);
     selBadge.innerHTML =
       `<span><b>${arr.length}</b> TITLES SELECTED · AVG ${avg.toFixed(1)} · Σ ${fmtSales(tot)}</span>` +
       `<button type="button" aria-label="Clear selection">✕</button>`;
@@ -712,6 +744,7 @@ export function createHighScore({ mountEl, data, store, shell }) {
     renderStream(state);
     renderScatter(state);
     reflectSelection(state);
+    syncSelectionUI();
     prev = { region: state.region, focus: focusJSON, cb: state.colorblind };
   }
 
@@ -737,6 +770,7 @@ export function createHighScore({ mountEl, data, store, shell }) {
     }
     renderScatter(state); // cheap; reflects year/region/focus/selection
     reflectSelection(state);
+    syncSelectionUI();
     prev = { 
       region: state.region, 
       focus: focusJSON, 

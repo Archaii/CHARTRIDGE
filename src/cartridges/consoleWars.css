@@ -53,9 +53,13 @@
 .cw-bands {
   cursor: pointer;
 }
+.cw-row {
+  transition: opacity 0.25s ease, visibility 0.25s ease;
+}
 .cw-row.is-dimmed {
-  opacity: 0.12;
-  filter: grayscale(100%);
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
 }
 .cw-row.is-active .cw-outline {
   stroke: var(--cyan);
@@ -384,7 +388,7 @@
 }
 .cw__controller {
   width: 100%;
-  max-width: 170px;
+  max-width: 220px;
   height: auto;
   overflow: visible;
 }

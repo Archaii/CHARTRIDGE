@@ -19,7 +19,7 @@ import {
   max as d3max,
   format,
 } from "d3";
-import { genreFamily, familyColor, genreColor } from "../ui/palette.js";
+import { genreFamily, familyColor, genreColor, toggleFamily } from "../ui/palette.js";
 import { PLAYHEAD_MS } from "../store.js";
 import { createLegend } from "../ui/legend.js";
 import { tooltip } from "../ui/tooltip.js";
@@ -29,7 +29,7 @@ const NEUTRAL = "#cdc6bb";
 const REDUCED_MOTION = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const REGION_LABEL = { na: "NA", jp: "JP", pal: "PAL", other: "Other", total: "Total" };
 // 4-way region split colors for the side-panel mini bars.
-const REGION_COLORS = { na: "#3f88c5", jp: "#e4572e", pal: "#2a9d8f", other: "#9b5de5" };
+const REGION_COLORS = { na: "#05d9e8", jp: "#ff2a6d", pal: "#b967ff", other: "#00f5a0" };
 
 const fmtSales = (v) => `${v.toFixed(v < 10 ? 1 : 0)}M`;
 const fmtInt = format(",");
@@ -46,26 +46,50 @@ const dominantGenre = (byGenre) => {
 };
 
 const CART_COLORS = {
-  NES: "#a8a8a8",
-  SNES: "#c0c0c0",
-  N64: "#686868",
-  GC: "#4b3b80",
-  Wii: "#f0f0f0",
-  WiiU: "#009cde",
-  GB: "#b0b0b0",
-  GBA: "#7b3b90",
-  DS: "#d0d0d0",
-  "3DS": "#ffffff",
-  PS: "#c8c8c8",
-  PS2: "#1c1c1c",
-  PS3: "#2c2c2c",
-  PS4: "#0a2a66",
-  PSP: "#151515",
-  XB: "#107c10",
-  X360: "#ffffff",
-  XOne: "#107c10",
-  GEN: "#1a1a1a",
-  PC: "#3a3a3a",
+  NES: "#8b8b8b",   // Classic NES gray
+  SNES: "#8085a6",  // SNES lavender-blue
+  N64: "#373737",   // N64 charcoal dark gray
+  GC: "#52479a",    // GameCube Indigo purple
+  Wii: "#e5e9ec",   // Wii gloss white
+  WiiU: "#00aeef",  // Wii U cyan
+  GB: "#8b956d",    // Game Boy screen pea green
+  GBA: "#5c2d91",   // GBA launch violet
+  DS: "#c0c5c8",    // DS silver
+  "3DS": "#007ebb",  // 3DS Aqua Blue
+  PS: "#bcc2c3",    // PlayStation retro gray
+  PS2: "#1f1f1f",   // PS2 matte black
+  PS3: "#121212",   // PS3 glossy black
+  PS4: "#0037a5",   // PlayStation corporate blue
+  PSP: "#0d0d0d",   // PSP piano black
+  XB: "#107c10",    // Xbox green
+  X360: "#f4f4f4",  // Xbox 360 matte white
+  XOne: "#0c0c0c",  // Xbox One matte black
+  GEN: "#002f6c",   // Sega Genesis / Sega Corporate Blue
+  PC: "#e6dec9",    // Classic retro PC beige
+};
+
+const CONSOLE_FULL_NAMES = {
+  NES: "Nintendo Entertainment System",
+  SNES: "Super Nintendo Entertainment System",
+  N64: "Nintendo 64",
+  GC: "GameCube",
+  Wii: "Nintendo Wii",
+  WiiU: "Nintendo Wii U",
+  GB: "Game Boy",
+  GBA: "Game Boy Advance",
+  DS: "Nintendo DS",
+  "3DS": "Nintendo 3DS",
+  PS: "PlayStation",
+  PS2: "PlayStation 2",
+  PS3: "PlayStation 3",
+  PS4: "PlayStation 4",
+  PSP: "PlayStation Portable",
+  XB: "Xbox",
+  X360: "Xbox 360",
+  XOne: "Xbox One",
+  GEN: "Sega Genesis",
+  PC: "Personal Computer",
+  Other: "Other Platforms",
 };
 
 function getControllerLayout(consoleName, topGenres, cb) {
@@ -97,8 +121,8 @@ function getControllerLayout(consoleName, topGenres, cb) {
         <circle cx="92" cy="64" r="3.5" fill="#3b374d" />
         <circle cx="108" cy="64" r="3.5" fill="#3b374d" />
         <circle cx="100" cy="74" r="4.5" fill="#3b374d" />
-        <circle class="${btnClass(5)}" data-genre="${btnLabels[5]}" style="fill:${btnColors[5]}" cx="100" cy="88" r="5" />
-        <circle class="${btnClass(6)}" data-genre="${btnLabels[6]}" style="fill:${btnColors[6]}" cx="100" cy="99" r="5" />
+        <circle class="${btnClass(5)}" data-genre="${btnLabels[5]}" style="fill:${btnColors[5]}" cx="100" cy="88" r="3.5" />
+        <circle class="${btnClass(6)}" data-genre="${btnLabels[6]}" style="fill:${btnColors[6]}" cx="100" cy="99" r="3.5" />
       `
     };
   } else if (isHandheld) {
@@ -107,14 +131,14 @@ function getControllerLayout(consoleName, topGenres, cb) {
       svg: `
         <rect x="25" y="20" width="150" height="80" rx="10" fill="#1b1a24" stroke="#3b374d" stroke-width="2" />
         <rect x="65" y="28" width="70" height="52" rx="3" fill="#0d0a15" stroke="#252233" stroke-width="1.5" />
-        <path class="${btnClass(0)}" data-genre="${btnLabels[0]}" style="fill:${btnColors[0]}" d="M 42,42 L 48,42 L 48,48 L 42,48 Z" />
-        <path class="${btnClass(1)}" data-genre="${btnLabels[1]}" style="fill:${btnColors[1]}" d="M 48,48 L 54,48 L 54,54 L 48,54 Z" />
-        <path class="${btnClass(2)}" data-genre="${btnLabels[2]}" style="fill:${btnColors[2]}" d="M 42,54 L 48,54 L 48,60 L 42,60 Z" />
-        <path class="${btnClass(3)}" data-genre="${btnLabels[3]}" style="fill:${btnColors[3]}" d="M 36,48 L 42,48 L 42,54 L 36,54 Z" />
-        <circle class="${btnClass(4)}" data-genre="${btnLabels[4]}" style="fill:${btnColors[4]}" cx="155" cy="42" r="5" />
-        <circle class="${btnClass(5)}" data-genre="${btnLabels[5]}" style="fill:${btnColors[5]}" cx="167" cy="54" r="5" />
-        <circle class="${btnClass(6)}" data-genre="${btnLabels[6]}" style="fill:${btnColors[6]}" cx="155" cy="66" r="5" />
-        <circle class="${btnClass(7)}" data-genre="${btnLabels[7]}" style="fill:${btnColors[7]}" cx="143" cy="54" r="5" />
+        <path class="${btnClass(0)}" data-genre="${btnLabels[0]}" style="fill:${btnColors[0]}" d="M 41,36 L 47,36 L 47,42 L 41,42 Z" />
+        <path class="${btnClass(1)}" data-genre="${btnLabels[1]}" style="fill:${btnColors[1]}" d="M 47,45 L 53,45 L 53,51 L 47,51 Z" />
+        <path class="${btnClass(2)}" data-genre="${btnLabels[2]}" style="fill:${btnColors[2]}" d="M 41,54 L 47,54 L 47,60 L 41,60 Z" />
+        <path class="${btnClass(3)}" data-genre="${btnLabels[3]}" style="fill:${btnColors[3]}" d="M 35,45 L 41,45 L 41,51 L 35,51 Z" />
+        <circle class="${btnClass(4)}" data-genre="${btnLabels[4]}" style="fill:${btnColors[4]}" cx="155" cy="42" r="4.5" />
+        <circle class="${btnClass(5)}" data-genre="${btnLabels[5]}" style="fill:${btnColors[5]}" cx="167" cy="54" r="4.5" />
+        <circle class="${btnClass(6)}" data-genre="${btnLabels[6]}" style="fill:${btnColors[6]}" cx="155" cy="66" r="4.5" />
+        <circle class="${btnClass(7)}" data-genre="${btnLabels[7]}" style="fill:${btnColors[7]}" cx="143" cy="54" r="4.5" />
       `
     };
   } else {
@@ -124,14 +148,14 @@ function getControllerLayout(consoleName, topGenres, cb) {
         <path d="M 50,25 L 150,25 C 175,25 185,45 185,65 C 185,95 160,105 145,95 L 125,85 L 75,85 L 55,95 C 40,105 15,95 15,65 C 15,45 25,25 50,25 Z" fill="#1b1a24" stroke="#3b374d" stroke-width="2" />
         <circle cx="85" cy="70" r="10" fill="#100f17" stroke="#252233" stroke-width="1.5" />
         <circle cx="115" cy="70" r="10" fill="#100f17" stroke="#252233" stroke-width="1.5" />
-        <path class="${btnClass(0)}" data-genre="${btnLabels[0]}" style="fill:${btnColors[0]}" d="M 52,43 L 58,43 L 58,49 L 52,49 Z" />
-        <path class="${btnClass(1)}" data-genre="${btnLabels[1]}" style="fill:${btnColors[1]}" d="M 58,49 L 64,49 L 64,55 L 58,55 Z" />
-        <path class="${btnClass(2)}" data-genre="${btnLabels[2]}" style="fill:${btnColors[2]}" d="M 52,55 L 58,55 L 58,61 L 52,61 Z" />
-        <path class="${btnClass(3)}" data-genre="${btnLabels[3]}" style="fill:${btnColors[3]}" d="M 46,49 L 52,49 L 52,55 L 46,55 Z" />
-        <circle class="${btnClass(4)}" data-genre="${btnLabels[4]}" style="fill:${btnColors[4]}" cx="145" cy="43" r="5" />
-        <circle class="${btnClass(5)}" data-genre="${btnLabels[5]}" style="fill:${btnColors[5]}" cx="157" cy="55" r="5" />
-        <circle class="${btnClass(6)}" data-genre="${btnLabels[6]}" style="fill:${btnColors[6]}" cx="145" cy="67" r="5" />
-        <circle class="${btnClass(7)}" data-genre="${btnLabels[7]}" style="fill:${btnColors[7]}" cx="133" cy="55" r="5" />
+        <path class="${btnClass(0)}" data-genre="${btnLabels[0]}" style="fill:${btnColors[0]}" d="M 44,37 L 52,37 L 52,45 L 44,45 Z" />
+        <path class="${btnClass(1)}" data-genre="${btnLabels[1]}" style="fill:${btnColors[1]}" d="M 52,45 L 60,45 L 60,53 L 52,53 Z" />
+        <path class="${btnClass(2)}" data-genre="${btnLabels[2]}" style="fill:${btnColors[2]}" d="M 44,53 L 52,53 L 52,61 L 44,61 Z" />
+        <path class="${btnClass(3)}" data-genre="${btnLabels[3]}" style="fill:${btnColors[3]}" d="M 36,45 L 44,45 L 44,53 L 36,53 Z" />
+        <circle class="${btnClass(4)}" data-genre="${btnLabels[4]}" style="fill:${btnColors[4]}" cx="148" cy="42" r="5.5" />
+        <circle class="${btnClass(5)}" data-genre="${btnLabels[5]}" style="fill:${btnColors[5]}" cx="160" cy="55" r="5.5" />
+        <circle class="${btnClass(6)}" data-genre="${btnLabels[6]}" style="fill:${btnColors[6]}" cx="148" cy="68" r="5.5" />
+        <circle class="${btnClass(7)}" data-genre="${btnLabels[7]}" style="fill:${btnColors[7]}" cx="136" cy="55" r="5.5" />
       `
     };
   }
@@ -274,7 +298,7 @@ export function createConsoleWars({ mountEl, data, store, shell }) {
 
       const outline = gRow.append("path").attr("class", "cw-outline");
 
-      gRows
+      gRow
         .append("text")
         .attr("class", "cw-rowlabel")
         .attr("x", marginLeft - 8)
@@ -380,7 +404,7 @@ export function createConsoleWars({ mountEl, data, store, shell }) {
   }
 
   // ---------- side panel ----------
-  function gameItem(g, rank, sub) {
+  function gameItem(g, rank, sub, region) {
     const parts = ["na", "jp", "pal", "other"];
     const sum = parts.reduce((s, k) => s + (g[k] || 0), 0);
     const split =
@@ -394,12 +418,15 @@ export function createConsoleWars({ mountEl, data, store, shell }) {
             )
             .join("")}</div>`
         : "";
+    
+    const val = region === "total" ? g.sales : g[region];
+
     return `
       <li class="cw__game">
         <div class="cw__game-top">
           <span class="cw__game-rank">${rank}</span>
           <span class="cw__game-title" title="${esc(g.title)}">${esc(g.title)}</span>
-          <span class="cw__game-sales">${fmtSales(g.sales)}</span>
+          <span class="cw__game-sales">${fmtSales(val)}</span>
         </div>
         <div class="cw__game-sub">${esc(sub)}</div>
         ${split}
@@ -407,17 +434,44 @@ export function createConsoleWars({ mountEl, data, store, shell }) {
   }
 
   function renderPanelYear(yr) {
-    const games = data.topGamesByYear[yr] || [];
-    const list = games.length
-      ? `<ul class="cw__list">${games
-          .map((g, i) => gameItem(g, i + 1, `${g.console} · ${g.genre}`))
+    const state = store.get();
+    const region = state.region;
+    const focusList = state.focusedGenres || [];
+    const hasFocus = focusList.length > 0;
+
+    // Dynamically filter data.games for the active year + genre focus
+    const regionVal = (g) => region === "total" ? (g.sales || 0) : (g[region] || 0);
+    const filtered = (data.games || []).filter((g) => {
+      if (g.year !== yr) return false;
+      if (hasFocus && !focusList.includes(g.genre)) return false;
+      return regionVal(g) > 0;
+    });
+    filtered.sort((a, b) => regionVal(b) - regionVal(a));
+    const topGames = filtered.slice(0, 8).map((g) => ({
+      title: g.title, console: g.console, genre: g.genre,
+      year: g.year, sales: regionVal(g), score: g.score,
+      na: g.na, jp: g.jp, pal: g.pal, other: g.other,
+    }));
+
+    const list = topGames.length
+      ? `<ul class="cw__list">${topGames
+          .map((g, i) => gameItem(g, i + 1, `${g.console} · ${g.genre}`, region))
           .join("")}</ul>`
       : `<p class="cw__empty">No ranked sales this year.</p>`;
 
+    // Push filtered year top sellers to the right-rail leaderboard
+    const totalSales = filtered.reduce((acc, g) => acc + regionVal(g), 0);
+    shell?.setLeaderboard?.(topGames, {
+      title: `TOP · ${yr}`,
+      metric: "sales",
+      summary: `${filtered.length} titles · Σ ${fmtSales(totalSales)}`,
+    });
+
     const cartridgesHtml = rows.map((row) => {
       const color = CART_COLORS[row.name] || "#555555";
+      const fullName = CONSOLE_FULL_NAMES[row.name] || row.name;
       return `
-        <div class="cw__cartridge" draggable="true" data-console="${row.name}" style="background:${color}" title="Drag or click to load ${row.name}">
+        <div class="cw__cartridge" draggable="true" data-console="${row.name}" style="background:${color}" title="Drag or click to load ${fullName}">
           <div class="cw__cart-label">${row.name}</div>
           <div class="cw__cart-ridges"></div>
         </div>
@@ -475,13 +529,60 @@ export function createConsoleWars({ mountEl, data, store, shell }) {
   }
 
   function renderPanelConsole(name) {
-    const cb = store.get().colorblind;
-    const games = data.topGamesByConsole[name] || [];
-    const list = games.length
-      ? `<ul class="cw__list">${games
-          .map((g, i) => gameItem(g, i + 1, `${g.year} · ${g.genre}`))
+    const state = store.get();
+    const region = state.region;
+    const cb = state.colorblind;
+    const yr = playYear(state);
+    const focusList = state.focusedGenres || [];
+    const hasFocus = focusList.length > 0;
+
+    // Dynamically filter data.games for this console + current playhead year + genre focus
+    const regionVal = (g) => region === "total" ? (g.sales || 0) : (g[region] || 0);
+    const filtered = (data.games || []).filter((g) => {
+      const consoleName = cy.order.includes(g.console) ? g.console : "Other";
+      if (consoleName !== name) return false;
+      if (g.year !== yr) return false;
+      if (hasFocus && !focusList.includes(g.genre)) return false;
+      return regionVal(g) > 0;
+    });
+    filtered.sort((a, b) => regionVal(b) - regionVal(a));
+    const topGames = filtered.slice(0, 8).map((g) => ({
+      title: g.title, console: g.console, genre: g.genre,
+      year: g.year, sales: regionVal(g), score: g.score,
+      na: g.na, jp: g.jp, pal: g.pal, other: g.other,
+    }));
+
+    const list = topGames.length
+      ? `<ul class="cw__list">${topGames
+          .map((g, i) => gameItem(g, i + 1, g.genre, region))
           .join("")}</ul>`
-      : `<p class="cw__empty">No ranked sales.</p>`;
+      : `<p class="cw__empty">No releases this year.</p>`;
+
+    // Check if we already have this console loaded in the panel to avoid re-triggering insertion animations
+    const existingCart = panelEl.querySelector(".cw__cartridge.is-inserted");
+    if (existingCart && existingCart.dataset.console === name) {
+      const titleEl = panelEl.querySelector(".cw__game-list-title");
+      if (titleEl) titleEl.textContent = `Top Titles · ${yr}`;
+      
+      const containerEl = panelEl.querySelector(".cw__game-list-container");
+      if (containerEl) containerEl.innerHTML = list;
+
+      const totalSales = filtered.reduce((acc, g) => acc + regionVal(g), 0);
+      shell?.setLeaderboard?.(topGames, {
+        title: `TOP · ${name} · ${yr}`,
+        metric: "sales",
+        summary: `${filtered.length} titles · Σ ${fmtSales(totalSales)}`,
+      });
+      return;
+    }
+
+    // Push to right-rail leaderboard
+    const totalSales = filtered.reduce((acc, g) => acc + regionVal(g), 0);
+    shell?.setLeaderboard?.(topGames, {
+      title: `TOP · ${name} · ${yr}`,
+      metric: "sales",
+      summary: `${filtered.length} titles · Σ ${fmtSales(totalSales)}`,
+    });
 
     const genreTotals = {};
     const cData = cy.table[name] || {};
@@ -491,8 +592,11 @@ export function createConsoleWars({ mountEl, data, store, shell }) {
         genreTotals[genre] = (genreTotals[genre] || 0) + byGenre[genre];
       }
     }
+
+    const regionRatio = region === "na" ? 0.49 : region === "jp" ? 0.12 : region === "pal" ? 0.29 : region === "other" ? 0.10 : 1.0;
+
     const topGenres = Object.entries(genreTotals)
-      .map(([genre, sales]) => ({ genre, sales }))
+      .map(([genre, sales]) => ({ genre, sales: sales * regionRatio }))
       .sort((a, b) => b.sales - a.sales);
 
     const layoutInfo = getControllerLayout(name, topGenres, cb);
@@ -541,8 +645,8 @@ export function createConsoleWars({ mountEl, data, store, shell }) {
         ${genresListHtml}
       </ul>
 
-      <div class="cw__game-list-title">Top Titles</div>
-      ${list}
+      <div class="cw__game-list-title">Top Titles · ${yr}</div>
+      <div class="cw__game-list-container">${list}</div>
     `;
 
     panelEl.querySelector(".cw__panel-back").addEventListener("click", clearSelection);
@@ -579,9 +683,7 @@ export function createConsoleWars({ mountEl, data, store, shell }) {
 
   function toggleGenreFocus(genre) {
     const current = store.get().focusedGenres || [];
-    const updated = current.includes(genre)
-      ? current.filter((g) => g !== genre)
-      : [...current, genre];
+    const updated = toggleFamily(current, genreFamily(genre));
     store.set({ focusedGenres: updated });
   }
 
@@ -676,27 +778,36 @@ export function createConsoleWars({ mountEl, data, store, shell }) {
 
   // ---------- store subscription ----------
   function onState(state) {
+    let regionChanged = false;
     if (state.region !== prevRegion) {
       renderRidges(state, true);
       prevRegion = state.region;
+      regionChanged = true;
     }
     if (state.colorblind !== prevCb) {
       recolorBands(state.colorblind);
-      if (selectedConsole) {
-        renderPanelConsole(selectedConsole);
-      }
       prevCb = state.colorblind;
     }
     const focusJSON = JSON.stringify(state.focusedGenres || []);
-    if (focusJSON !== prevFocus) {
+    const focusChanged = focusJSON !== prevFocus;
+    if (focusChanged) {
       applyFocus(state.focusedGenres);
       applyConsolePanelFocus(state.focusedGenres);
       prevFocus = focusJSON;
     }
     const yr = playYear(state);
-    if (yr !== prevPlayYear) {
+    const yearChanged = yr !== prevPlayYear;
+    if (yearChanged || regionChanged) {
       renderPlayhead(state);
       prevPlayYear = yr;
+    }
+    // Re-render panels when region, year, or genre focus changes
+    if (regionChanged || focusChanged || yearChanged) {
+      if (panelMode === "console" && selectedConsole) {
+        renderPanelConsole(selectedConsole);
+      } else if (panelMode === "year") {
+        renderPanelYear(playYear(state));
+      }
     }
   }
 
@@ -726,6 +837,8 @@ export function createConsoleWars({ mountEl, data, store, shell }) {
     mount() {
       buildDom();
       shell?.setSampleSize?.(`${fmtInt(data.meta.window.withSales)} TITLES`);
+      // Initialize leaderboard with all-time top sellers for this view
+      shell?.setLeaderboard?.(data.leaderboard);
 
       const state = store.get();
       prevRegion = state.region;
@@ -754,6 +867,8 @@ export function createConsoleWars({ mountEl, data, store, shell }) {
       unsub?.();
       legend?.destroy();
       tooltip.hide();
+      // Restore the all-time leaderboard when leaving this view
+      shell?.setLeaderboard?.(data.leaderboard);
       mountEl.innerHTML = "";
     },
   };

@@ -45,6 +45,96 @@ const dominantGenre = (byGenre) => {
   return best;
 };
 
+const CART_COLORS = {
+  NES: "#a8a8a8",
+  SNES: "#c0c0c0",
+  N64: "#686868",
+  GC: "#4b3b80",
+  Wii: "#f0f0f0",
+  WiiU: "#009cde",
+  GB: "#b0b0b0",
+  GBA: "#7b3b90",
+  DS: "#d0d0d0",
+  "3DS": "#ffffff",
+  PS: "#c8c8c8",
+  PS2: "#1c1c1c",
+  PS3: "#2c2c2c",
+  PS4: "#0a2a66",
+  PSP: "#151515",
+  XB: "#107c10",
+  X360: "#ffffff",
+  XOne: "#107c10",
+  GEN: "#1a1a1a",
+  PC: "#3a3a3a",
+};
+
+function getControllerLayout(consoleName, topGenres, cb) {
+  const isWii = consoleName.includes("Wii");
+  const isHandheld = consoleName.includes("DS") || consoleName.includes("3DS") || consoleName.includes("PSP") || consoleName.includes("GBA") || consoleName.includes("GB");
+  
+  const btnColors = Array(8).fill("#3b374d");
+  const btnLabels = Array(8).fill("");
+  
+  topGenres.forEach((g, idx) => {
+    if (idx < 8) {
+      btnColors[idx] = genreColor(g.genre, cb);
+      btnLabels[idx] = g.genre;
+    }
+  });
+
+  if (isWii) {
+    return {
+      type: "wiimote",
+      svg: `
+        <rect x="80" y="10" width="40" height="100" rx="6" fill="#1b1a24" stroke="#3b374d" stroke-width="2" />
+        <path class="cw-ctrl-btn" data-genre="${btnLabels[0]}" style="fill:${btnColors[0]}" d="M 97,16 L 103,16 L 103,22 L 97,22 Z" />
+        <path class="cw-ctrl-btn" data-genre="${btnLabels[1]}" style="fill:${btnColors[1]}" d="M 103,22 L 109,22 L 109,28 L 103,28 Z" />
+        <path class="cw-ctrl-btn" data-genre="${btnLabels[2]}" style="fill:${btnColors[2]}" d="M 97,28 L 103,28 L 103,34 L 97,34 Z" />
+        <path class="cw-ctrl-btn" data-genre="${btnLabels[3]}" style="fill:${btnColors[3]}" d="M 91,22 L 97,22 L 97,28 L 91,28 Z" />
+        <circle class="cw-ctrl-btn" data-genre="${btnLabels[4]}" style="fill:${btnColors[4]}" cx="100" cy="48" r="7" />
+        <circle cx="92" cy="64" r="3.5" fill="#3b374d" />
+        <circle cx="108" cy="64" r="3.5" fill="#3b374d" />
+        <circle cx="100" cy="74" r="4.5" fill="#3b374d" />
+        <circle class="cw-ctrl-btn" data-genre="${btnLabels[5]}" style="fill:${btnColors[5]}" cx="100" cy="88" r="5" />
+        <circle class="cw-ctrl-btn" data-genre="${btnLabels[6]}" style="fill:${btnColors[6]}" cx="100" cy="99" r="5" />
+      `
+    };
+  } else if (isHandheld) {
+    return {
+      type: "handheld",
+      svg: `
+        <rect x="25" y="20" width="150" height="80" rx="10" fill="#1b1a24" stroke="#3b374d" stroke-width="2" />
+        <rect x="65" y="28" width="70" height="52" rx="3" fill="#0d0a15" stroke="#252233" stroke-width="1.5" />
+        <path class="cw-ctrl-btn" data-genre="${btnLabels[0]}" style="fill:${btnColors[0]}" d="M 42,42 L 48,42 L 48,48 L 42,48 Z" />
+        <path class="cw-ctrl-btn" data-genre="${btnLabels[1]}" style="fill:${btnColors[1]}" d="M 48,48 L 54,48 L 54,54 L 48,54 Z" />
+        <path class="cw-ctrl-btn" data-genre="${btnLabels[2]}" style="fill:${btnColors[2]}" d="M 42,54 L 48,54 L 48,60 L 42,60 Z" />
+        <path class="cw-ctrl-btn" data-genre="${btnLabels[3]}" style="fill:${btnColors[3]}" d="M 36,48 L 42,48 L 42,54 L 36,54 Z" />
+        <circle class="cw-ctrl-btn" data-genre="${btnLabels[4]}" style="fill:${btnColors[4]}" cx="155" cy="42" r="5" />
+        <circle class="cw-ctrl-btn" data-genre="${btnLabels[5]}" style="fill:${btnColors[5]}" cx="167" cy="54" r="5" />
+        <circle class="cw-ctrl-btn" data-genre="${btnLabels[6]}" style="fill:${btnColors[6]}" cx="155" cy="66" r="5" />
+        <circle class="cw-ctrl-btn" data-genre="${btnLabels[7]}" style="fill:${btnColors[7]}" cx="143" cy="54" r="5" />
+      `
+    };
+  } else {
+    return {
+      type: "gamepad",
+      svg: `
+        <path d="M 50,25 L 150,25 C 175,25 185,45 185,65 C 185,95 160,105 145,95 L 125,85 L 75,85 L 55,95 C 40,105 15,95 15,65 C 15,45 25,25 50,25 Z" fill="#1b1a24" stroke="#3b374d" stroke-width="2" />
+        <circle cx="85" cy="70" r="10" fill="#100f17" stroke="#252233" stroke-width="1.5" />
+        <circle cx="115" cy="70" r="10" fill="#100f17" stroke="#252233" stroke-width="1.5" />
+        <path class="cw-ctrl-btn" data-genre="${btnLabels[0]}" style="fill:${btnColors[0]}" d="M 52,43 L 58,43 L 58,49 L 52,49 Z" />
+        <path class="cw-ctrl-btn" data-genre="${btnLabels[1]}" style="fill:${btnColors[1]}" d="M 58,49 L 64,49 L 64,55 L 58,55 Z" />
+        <path class="cw-ctrl-btn" data-genre="${btnLabels[2]}" style="fill:${btnColors[2]}" d="M 52,55 L 58,55 L 58,61 L 52,61 Z" />
+        <path class="cw-ctrl-btn" data-genre="${btnLabels[3]}" style="fill:${btnColors[3]}" d="M 46,49 L 52,49 L 52,55 L 46,55 Z" />
+        <circle class="cw-ctrl-btn" data-genre="${btnLabels[4]}" style="fill:${btnColors[4]}" cx="145" cy="43" r="5" />
+        <circle class="cw-ctrl-btn" data-genre="${btnLabels[5]}" style="fill:${btnColors[5]}" cx="157" cy="55" r="5" />
+        <circle class="cw-ctrl-btn" data-genre="${btnLabels[6]}" style="fill:${btnColors[6]}" cx="145" cy="67" r="5" />
+        <circle class="cw-ctrl-btn" data-genre="${btnLabels[7]}" style="fill:${btnColors[7]}" cx="133" cy="55" r="5" />
+      `
+    };
+  }
+}
+
 export function createConsoleWars({ mountEl, data, store, shell }) {
   const cy = data.consoleYear;
   const years = cy.years;
@@ -321,29 +411,164 @@ export function createConsoleWars({ mountEl, data, store, shell }) {
           .map((g, i) => gameItem(g, i + 1, `${g.console} · ${g.genre}`))
           .join("")}</ul>`
       : `<p class="cw__empty">No ranked sales this year.</p>`;
+
+    const cartridgesHtml = rows.map((row) => {
+      const color = CART_COLORS[row.name] || "#555555";
+      return `
+        <div class="cw__cartridge" draggable="true" data-console="${row.name}" style="background:${color}" title="Drag or click to load ${row.name}">
+          <div class="cw__cart-label">${row.name}</div>
+          <div class="cw__cart-ridges"></div>
+        </div>
+      `;
+    }).join("");
+
     panelEl.innerHTML = `
       <div class="cw__panel-head">
-        <span class="cw__panel-title">Top games</span>
-        <span class="cw__panel-year">${yr}</span>
+        <span class="cw__panel-title">SYSTEM DECK</span>
       </div>
+      
+      <div class="cw__slot-container">
+        <div class="cw__slot-receptacle">
+          <div class="cw__slot-flap"></div>
+          <span class="cw__slot-prompt">DRAG / CLICK CART TO LOAD</span>
+        </div>
+      </div>
+
+      <div class="cw__rack-title">Cartridge Rack</div>
+      <div class="cw__rack">
+        ${cartridgesHtml}
+      </div>
+
+      <div class="cw__game-list-title">Top games · ${yr}</div>
       ${list}
-      <p class="cw__empty" style="margin-top:auto">▶ Play the timeline, or click a console row.</p>`;
+    `;
+
+    const carts = panelEl.querySelectorAll(".cw__cartridge");
+    carts.forEach((c) => {
+      c.addEventListener("dragstart", (e) => {
+        e.dataTransfer.setData("text/plain", c.dataset.console);
+        e.dataTransfer.effectAllowed = "move";
+      });
+      c.addEventListener("click", () => {
+        selectConsole(c.dataset.console);
+      });
+    });
+
+    const slot = panelEl.querySelector(".cw__slot-receptacle");
+    if (slot) {
+      slot.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        slot.classList.add("is-dragover");
+      });
+      slot.addEventListener("dragleave", () => {
+        slot.classList.remove("is-dragover");
+      });
+      slot.addEventListener("drop", (e) => {
+        e.preventDefault();
+        slot.classList.remove("is-dragover");
+        const name = e.dataTransfer.getData("text/plain");
+        if (name) selectConsole(name);
+      });
+    }
   }
 
   function renderPanelConsole(name) {
+    const cb = store.get().colorblind;
     const games = data.topGamesByConsole[name] || [];
     const list = games.length
       ? `<ul class="cw__list">${games
           .map((g, i) => gameItem(g, i + 1, `${g.year} · ${g.genre}`))
           .join("")}</ul>`
       : `<p class="cw__empty">No ranked sales.</p>`;
+
+    const genreTotals = {};
+    const cData = cy.table[name] || {};
+    for (const y in cData) {
+      const byGenre = cData[y].byGenre || {};
+      for (const genre in byGenre) {
+        genreTotals[genre] = (genreTotals[genre] || 0) + byGenre[genre];
+      }
+    }
+    const topGenres = Object.entries(genreTotals)
+      .map(([genre, sales]) => ({ genre, sales }))
+      .sort((a, b) => b.sales - a.sales);
+
+    const layoutInfo = getControllerLayout(name, topGenres, cb);
+
+    const genresListHtml = topGenres.slice(0, 8).map((g, idx) => {
+      const color = genreColor(g.genre, cb);
+      let btnLabel = "";
+      if (layoutInfo.type === "wiimote") {
+        btnLabel = idx === 4 ? "A" : idx === 5 ? "1" : idx === 6 ? "2" : ["U", "R", "D", "L"][idx] || "";
+      } else {
+        btnLabel = idx === 4 ? "X" : idx === 5 ? "A" : idx === 6 ? "B" : idx === 7 ? "Y" : ["U", "R", "D", "L"][idx] || "";
+      }
+      return `
+        <li class="cw__genre-item" data-genre="${g.genre}">
+          <span class="cw__genre-btn-key">${btnLabel}</span>
+          <span class="cw__genre-color-dot" style="background:${color}"></span>
+          <span class="cw__genre-name" title="${g.genre}">${g.genre}</span>
+          <span class="cw__genre-sales">${fmtSales(g.sales)}</span>
+        </li>
+      `;
+    }).join("");
+
+    const cartColor = CART_COLORS[name] || "#555555";
+
     panelEl.innerHTML = `
       <div class="cw__panel-head">
-        <span class="cw__panel-title">${esc(name)} · Top titles</span>
-        <button class="cw__panel-back" aria-label="Back to year view">✕</button>
+        <span class="cw__panel-title">SYSTEM DECK</span>
+        <button class="cw__panel-back" aria-label="Eject cartridge">✕ Eject</button>
       </div>
-      ${list}`;
+
+      <div class="cw__loaded-slot">
+        <div class="cw__cartridge is-inserted" data-console="${name}" style="background:${cartColor}">
+          <div class="cw__cart-label">${name}</div>
+          <div class="cw__cart-ridges"></div>
+        </div>
+      </div>
+
+      <div class="cw__controller-wrap">
+        <svg class="cw__controller" viewBox="0 0 200 120">
+          ${layoutInfo.svg}
+        </svg>
+      </div>
+
+      <div class="cw__genre-list-title">Console Genre Breakdown</div>
+      <ul class="cw__genre-list">
+        ${genresListHtml}
+      </ul>
+
+      <div class="cw__game-list-title">Top Titles</div>
+      ${list}
+    `;
+
     panelEl.querySelector(".cw__panel-back").addEventListener("click", clearSelection);
+
+    attachControllerTooltips();
+  }
+
+  function attachControllerTooltips() {
+    const btns = panelEl.querySelectorAll(".cw-ctrl-btn");
+    btns.forEach((btn) => {
+      const genre = btn.dataset.genre;
+      if (!genre) return;
+      
+      btn.addEventListener("mousemove", (e) => {
+        const item = panelEl.querySelector(`.cw__genre-item[data-genre="${genre}"]`);
+        const salesValText = item ? item.querySelector(".cw__genre-sales").textContent : "";
+        tooltip.show(
+          `<div class="tooltip__title">${genre}</div>
+           <div class="tooltip__row"><span>Lifetime Sales</span><b>${salesValText}</b></div>`,
+          e.clientX,
+          e.clientY
+        );
+      });
+      
+      btn.addEventListener("mouseleave", () => {
+        tooltip.hide();
+      });
+    });
   }
 
   function selectConsole(name) {
@@ -386,6 +611,9 @@ export function createConsoleWars({ mountEl, data, store, shell }) {
     }
     if (state.colorblind !== prevCb) {
       recolorBands(state.colorblind);
+      if (selectedConsole) {
+        renderPanelConsole(selectedConsole);
+      }
       prevCb = state.colorblind;
     }
     const focusJSON = JSON.stringify(state.focusedGenres || []);

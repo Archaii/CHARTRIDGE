@@ -54,8 +54,13 @@
   cursor: pointer;
 }
 .cw-row.is-dimmed {
-  opacity: 0.25;
+  opacity: 0.12;
   filter: grayscale(100%);
+}
+.cw-row:not(.is-dimmed) .cw-outline {
+  stroke: var(--cyan);
+  stroke-width: 1.5;
+  filter: drop-shadow(0 0 3px rgba(5, 217, 232, 0.6));
 }
 .cw-rowlabel {
   font-family: var(--font-data);
@@ -202,4 +207,232 @@
     border-top: 2px solid var(--hairline);
     max-height: 38%;
   }
+}
+
+/* physical console/deck slot switcher style */
+.cw__slot-container {
+  padding: 8px;
+  background: rgba(13, 4, 40, 0.45);
+  border-radius: 8px;
+  border: 1px solid var(--hairline);
+  margin-top: 4px;
+}
+.cw__slot-receptacle {
+  height: 40px;
+  background: #090710;
+  border: 2px solid var(--hairline);
+  border-radius: 6px;
+  box-shadow: inset 0 3px 6px rgba(0,0,0,0.8);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.cw__slot-receptacle.is-dragover {
+  border-color: var(--cyan);
+  box-shadow: inset 0 3px 6px rgba(0,0,0,0.8), 0 0 8px rgba(5,217,232,0.5);
+}
+.cw__slot-flap {
+  position: absolute;
+  inset: 3px;
+  background: #15131f;
+  border-bottom: 2px solid #000;
+  border-radius: 2px;
+  transform-origin: top;
+  transition: transform 0.2s ease;
+}
+.cw__slot-receptacle.is-dragover .cw__slot-flap {
+  transform: rotateX(45deg);
+}
+.cw__slot-prompt {
+  font-family: var(--font-data);
+  font-size: 8.5px;
+  color: var(--ink-soft);
+  letter-spacing: 0.5px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* cartridge rack shelf */
+.cw__rack-title {
+  font-family: var(--font-display);
+  font-size: 9px;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-top: 10px;
+}
+.cw__rack {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(58px, 1fr));
+  gap: 6px;
+  background: #110e1a;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid var(--hairline);
+  margin-top: 4px;
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+.cw__cartridge {
+  aspect-ratio: 1.15;
+  border-radius: 4px 4px 1px 1px;
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.15);
+  display: flex;
+  flex-direction: column;
+  padding: 3px;
+  cursor: grab;
+  position: relative;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.cw__cartridge:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.6), 0 0 4px var(--cyan);
+}
+.cw__cartridge:active {
+  cursor: grabbing;
+}
+.cw__cart-label {
+  flex: 1;
+  background: #252233;
+  color: #fff;
+  border: 1px solid var(--hairline);
+  border-radius: 2px;
+  font-family: var(--font-data);
+  font-size: 9px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-transform: uppercase;
+  text-shadow: 0 1px 1px #000;
+}
+.cw__cart-ridges {
+  height: 3px;
+  background: repeating-linear-gradient(
+    90deg,
+    #000,
+    #000 2px,
+    transparent 2px,
+    transparent 4px
+  );
+  opacity: 0.4;
+  margin-top: 2px;
+}
+
+/* loaded deck cartridge view */
+.cw__loaded-slot {
+  display: flex;
+  justify-content: center;
+  background: rgba(13, 4, 40, 0.4);
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid var(--hairline);
+  margin-top: 4px;
+}
+.cw__cartridge.is-inserted {
+  width: 76px;
+  height: 44px;
+  cursor: default;
+  transform: translateY(0);
+  animation: cw-insert-anim 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.2) forwards;
+}
+@keyframes cw-insert-anim {
+  from {
+    transform: translateY(-15px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* controller schematic styling */
+.cw__controller-wrap {
+  display: flex;
+  justify-content: center;
+  margin: 8px 0;
+  background: #110e1a;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid var(--hairline);
+}
+.cw__controller {
+  width: 100%;
+  max-width: 170px;
+  height: auto;
+  overflow: visible;
+}
+.cw-ctrl-btn {
+  stroke: rgba(255, 255, 255, 0.15);
+  stroke-width: 0.5;
+  cursor: pointer;
+  transition: filter 0.15s ease, stroke 0.15s ease;
+}
+.cw-ctrl-btn:hover {
+  stroke: #fff;
+  filter: brightness(1.2) drop-shadow(0 0 3px rgba(255, 255, 255, 0.4));
+}
+
+.cw__genre-list-title,
+.cw__game-list-title {
+  font-family: var(--font-display);
+  font-size: 9px;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin: 10px 0 4px;
+  border-bottom: 1px solid var(--hairline);
+  padding-bottom: 2px;
+}
+.cw__genre-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.cw__genre-item {
+  display: flex;
+  align-items: center;
+  font-family: var(--font-data);
+  font-size: 10.5px;
+  color: var(--ink);
+}
+.cw__genre-btn-key {
+  font-family: var(--font-display);
+  font-size: 8px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  background: #252233;
+  border: 1px solid var(--hairline);
+  border-radius: 3px;
+  padding: 1px 3px;
+  min-width: 10px;
+  text-align: center;
+  margin-right: 6px;
+  line-height: 1;
+}
+.cw__genre-color-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+  flex: none;
+}
+.cw__genre-name {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cw__genre-sales {
+  font-weight: 600;
+  margin-left: 8px;
 }

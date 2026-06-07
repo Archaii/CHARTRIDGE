@@ -292,12 +292,31 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 .leaderboard .lb-title {
   color: var(--ink);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+.leaderboard .lb-title.is-sliding {
+  display: inline-block;
+  width: max-content;
+  max-width: none;
+  text-overflow: clip;
+  animation: lb-marquee 7s ease-in-out infinite;
+}
+@keyframes lb-marquee {
+  0%, 15% {
+    transform: translateX(0);
+  }
+  45%, 65% {
+    transform: translateX(calc(-1 * var(--scroll-dist)));
+  }
+  95%, 100% {
+    transform: translateX(0);
+  }
 }
 .leaderboard .lb-sub {
   font-size: 14px;

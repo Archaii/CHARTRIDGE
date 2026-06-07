@@ -189,6 +189,19 @@ export function createConsole(rootEl) {
           );
         })
         .join("");
+
+      // Detect overflowing text and apply marquee effect
+      requestAnimationFrame(() => {
+        leaderboard.querySelectorAll(".lb-title").forEach((titleEl) => {
+          const scrollW = titleEl.scrollWidth;
+          const clientW = titleEl.clientWidth;
+          if (scrollW > clientW + 1) {
+            const diff = scrollW - clientW;
+            titleEl.style.setProperty("--scroll-dist", `${diff}px`);
+            titleEl.classList.add("is-sliding");
+          }
+        });
+      });
     },
   };
 }

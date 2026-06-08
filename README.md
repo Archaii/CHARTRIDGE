@@ -27,7 +27,7 @@ All three read one shared state store, so the **region** and **focused genre fam
 - **Marquee selection** (HIGH SCORE) — click-drag a box on the scatter to select titles; the leaderboard live-updates to those titles ranked by critic score.
 - **Smooth year playhead** — press ▶ and the sweep glides across the timeline.
 - **Honest sample sizes** — the on-screen readout states how many records are actually plotted (sales/score are mostly missing in the raw data).
-- **Accessibility** — clickable 6-family legend, colorblind-safe palette toggle, keyboard nav, and `prefers-reduced-motion` support.
+- **Accessibility** — clickable 5-group genre legend (20 genre hues, grouped for legibility; colorblind mode collapses to the 5 groups), keyboard nav, and `prefers-reduced-motion` support.
 
 ---
 

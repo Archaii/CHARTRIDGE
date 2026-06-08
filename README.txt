@@ -72,7 +72,8 @@ CONTROLS
   Keys 1-3 quick-pick; Esc returns to menu; R resets all filters.
 - Region buttons (NA / JP / PAL / OTH / TOTAL): restack/reweight charts.
 - Year slider: drag the knobs to set a range, or press play to sweep.
-- Genre legend: click a family to isolate it (click again to clear).
+- Genre legend: click a genre group to isolate it (click again to clear).
+  20 genres each have their own hue, organized into 5 color groups.
 - HIGH SCORE scatter: hover for details; click-drag to marquee-select
   a cluster (the right rail lists them by critic score).
 - "CB" button: toggle the colorblind-safe palette.

@@ -19,7 +19,7 @@ const STEP_MS = PLAYHEAD_MS; // dwell per year while playing
  * @param {{ mountEl: HTMLElement, store: object, min?: number, max?: number }} opts
  * @returns {{ destroy: () => void }}
  */
-export function createYearScrubber({ mountEl, store, min = 1995, max = 2020 }) {
+export function createYearScrubber({ mountEl, store, min = 1995, max = 2017 }) {
   mountEl.classList.add("scrubber");
   mountEl.innerHTML = `
     <button class="scrubber__play" aria-label="Play timeline">▶</button>

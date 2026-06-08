@@ -47,7 +47,7 @@ This pack contains three things:
 - Dataset: **Video Game Sales 1980–2024** (Divekar, 2026) — **64,016 rows**.
 - Columns: title, console, genre, publisher, developer, **critic_score**, **total_sales**, **na/jp/pal/other_sales**, release_date.
 - The catch (one chart/callout): `critic_score` ~10% present · `total_sales` ~30% · **both present = 4,126 games** · usable window **1995–2017**.
-- 20 genres → grouped into **6 color families**; regions = **NA / JP / PAL / Other**.
+- **20 genres**, each its own hue, organized into **5 color families** for legibility; regions = **NA / JP / PAL / Other** (real per-region sales).
 
 ### Slide 4 — The Idea: CHARTRIDGE
 - Our system's name: **CHARTRIDGE** — a retro **arcade-cabinet** OS where each visualization is a **game cartridge**.
@@ -63,8 +63,9 @@ This pack contains three things:
 - (Visual: one screenshot of each.)
 
 ### Slide 6 — Design Principles (quick, credible)
-- **≤6 color hues + click-to-focus** so color never works alone (accessibility).
+- **20 genre hues grouped into 5 families + click-to-focus** so color never works alone; colorblind mode collapses to the 5 families.
 - **Position/length for quantities; linear insets** where radial hurts precision (Mackinlay; Cleveland & McGill).
+- **High data density** — many marks per pixel (20 genres × 23 years in one stream; ~4,000 scored titles in the scatter) (Tufte, 2002).
 - **Overview → zoom/filter → details-on-demand** (Shneiderman).
 - **Coordinated multiple views** + **honest on-screen sample size** (data integrity).
 
@@ -89,6 +90,7 @@ This pack contains three things:
 - Shneiderman, B. (1996). *The Eyes Have It: A Task by Data Type Taxonomy for Information Visualizations.*
 - Cleveland, W. S., & McGill, R. (1984). *Graphical Perception.*
 - Mackinlay, J. (1986). *Automating the Design of Graphical Presentations.*
+- Tufte, E. R. (2002). *The Visual Display of Quantitative Information* (data density).
 - Roberts, J. C. (2007). *State of the Art: Coordinated & Multiple Views.*
 
 ### Slide 11 — Thank You / Q&A
@@ -107,7 +109,7 @@ This pack contains three things:
 "Our topic is the **video-game industry** — four decades of sales and reviews. We came in with three real questions. One: which **genres** owned which **eras**? Two: do good **reviews** actually mean good **sales** — and where are the *hidden gems*? And three: how do **consoles** live and die, and what drove them? Three questions… which became our three cartridges."
 
 ### Slide 3 — The Data  *(~0:45)*
-"The dataset is Divekar's *Video Game Sales 1980–2024* — about **sixty-four thousand** rows. But here's the honest part, and it shaped everything: most of those rows are **catalog metadata**. Only about **ten percent** have a critic score, **thirty percent** have sales, and just **four thousand one hundred and twenty-six** have *both*. *(beat)* So instead of pretending we have 64,000 points, CHARTRIDGE **states its real sample size on screen**, and focuses on the trustworthy window — **1995 to 2017**. Twenty genres get grouped into **six color families**, because no one can read twenty colors at once."
+"The dataset is Divekar's *Video Game Sales 1980–2024* — about **sixty-four thousand** rows. But here's the honest part, and it shaped everything: most of those rows are **catalog metadata**. Only about **ten percent** have a critic score, **thirty percent** have sales, and just **four thousand one hundred and twenty-six** have *both*. *(beat)* So instead of pretending we have 64,000 points, CHARTRIDGE **states its real sample size on screen**, and focuses on the trustworthy window — **1995 to 2017**. And every one of the twenty genres gets its own color — but we organize them into **five color families**, so the palette reads as five clear regions instead of twenty-color soup."
 
 ### Slide 4 — The Idea  *(~0:40)*
 "So we built CHARTRIDGE as a **retro arcade cabinet**. And the cabinet isn't decoration — every part *does a job*. The **slider** is the year scrubber, the **buttons** pick the sales region, and the **screen** is the live chart. The chrome becomes the controls. *(beat)* And the three views **share one brain** — choose Japan, or spotlight RPGs, and that choice **follows you** from cartridge to cartridge. That's *coordinated views* — it makes three charts feel like one machine."
@@ -116,7 +118,7 @@ This pack contains three things:
 "Quick tour. **HIGH SCORE** links a genre **streamgraph** to a **score-versus-sales** scatter — that's our quality story. **CONSOLE WARS** is a **ridgeline** of every console's lifecycle, with a year playhead. And **GENRE WARP** spins the timeline into a **radial disc** to show which genres peaked when. You'll see all three in a moment."
 
 ### Slide 6 — Design Principles  *(~0:30)*
-"Two quick design commitments. First, **color never works alone** — six hues, plus click-to-focus to isolate a genre, which also helps colorblind users. Second, where a radial chart hurts precision, we pair it with a **linear inset** — gestalt *and* exact reading. Overview, then zoom and filter, then details on demand. Now — let's actually play it."
+"A few quick design commitments. First, **color never works alone** — all twenty genre hues, but grouped into five families, plus click-to-focus to isolate one; the colorblind toggle drops it to those five safe colors. Second, where a radial chart hurts precision, we pair it with a **linear inset** — gestalt *and* exact reading. And we push for **high data density**, Tufte-style — one stream packs twenty genres across twenty-three years; the scatter, four thousand titles. Overview, then zoom and filter, then details on demand. Now — let's actually play it."
 
 ### Slide 7 — Video  *(~4:00, presenter silent)*
 *(Click to play the demo. Stand to the side. Let the video's narration carry it. Be ready to advance the instant it ends.)*
@@ -154,7 +156,7 @@ This pack contains three things:
 *(Click TOTAL→JP; click a console row.)*
 
 **[2:05–3:15] — HIGH SCORE (quality vs sales + the new interactions)**
-> "Next, **HIGH SCORE**. Up top, the genre streamgraph shows the era hand-off. Below, every dot is a game reviewers scored — sales on a log axis, critic score going up. It's dense, so to filter we just **click a family in the legend** — let's isolate **Story** — and both panels fade everything else."
+> "Next, **HIGH SCORE**. Up top, the genre streamgraph shows the era hand-off. Below, every dot is a game reviewers scored — sales on a log axis, critic score going up, and the dots animate into place. It's dense, so to filter we just **click a genre group in the legend** — let's isolate **Story** — and both panels fade everything else."
 *(Click the "Story" legend chip.)*
 > "Top-left is the gold mine: **critically-loved, low-selling hidden gems.** To grab them, I **click and drag a box** around that corner — and the leaderboard on the right instantly becomes my selection, ranked by **critic score**."
 *(Drag a marquee over the top-left cluster; show the badge + the rail updating.)*

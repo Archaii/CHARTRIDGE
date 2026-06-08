@@ -1,23 +1,30 @@
 // data/loader.js — "Load Market Memory".
 //
-// One pass over the raw CSV on boot: parse, coerce types,
-// and clamp the analytical window to 1995–2018.
-// After this, nothing re-scans the raw rows — aggregate.js builds
+// One pass over the raw Divekar CSV on boot: parse, coerce types,
+// derive Year from release_date (dd-mm-yyyy), and clamp the analytical
+// window to 1995–2017 (earlier/later buckets are too sparse to trust).
+// After this, nothing re-scans the 64k raw rows — aggregate.js builds
 // the small lookup tables the cartridges actually read.
-import { csv } from "d3";
+//
+// Regional sales (na/jp/pal/other) are the dataset's REAL columns — not
+// estimated — so the region toggle reflects genuine regional differences.
+import { csv, timeParse } from "d3";
 
-// The usable analytical window for the cleaned dataset.
+const parseDate = timeParse("%d-%m-%Y");
+
+// The usable analytical window. Outside this, sales/score coverage
+// collapses (the 2020 bucket is ~28 games and will lie to you).
 export const YEAR_MIN = 1995;
-export const YEAR_MAX = 2020;
+export const YEAR_MAX = 2017;
 
 // CSV lives in public/data/. BASE_URL keeps the path correct in dev
 // and in a built site deployed under a subpath.
-const CSV_URL = `${import.meta.env.BASE_URL}data/Video_Games_Sales_Cleaned.csv?v=${Date.now()}`;
+const CSV_URL = `${import.meta.env.BASE_URL}data/video_games_sales.csv`;
 
 /**
  * Fetch, parse and clean the dataset.
  * @returns {Promise<{games: object[], raw: {total:number, withSales:number, scored:number}}>}
- *   `games` is the cleaned 1995–2018 window; `raw` holds honest
+ *   `games` is the cleaned 1995–2017 window; `raw` holds honest
  *   whole-dataset counts for the on-screen sample-size readout.
  */
 export async function loadMarketMemory() {
@@ -28,31 +35,12 @@ export async function loadMarketMemory() {
   const parsed = await csv(CSV_URL, (row) => {
     total += 1;
 
+    const date = parseDate(row.release_date);
     const score = row.critic_score ? +row.critic_score : null;
     const sales = row.total_sales ? +row.total_sales : null;
-    const year = row.release_year ? Math.round(parseFloat(row.release_year)) : null;
 
     if (sales != null) withSales += 1;
     if (sales != null && score != null) scored += 1;
-
-    // The cleaned dataset only has global total_sales; estimate regional sales 
-    // using genre-specific historical distributions to ensure visualizations react 
-    // dynamically and morph into different shapes when regions are toggled.
-    const genreStr = String(row.genre || "").toLowerCase();
-    
-    let fam = "casual";
-    if (["action", "action-adventure", "fighting", "shooter"].includes(genreStr)) fam = "combat";
-    else if (["strategy", "simulation", "puzzle", "board game", "education"].includes(genreStr)) fam = "mind";
-    else if (["role-playing", "adventure", "visual novel", "mmo", "platform"].includes(genreStr)) fam = "story";
-    else if (["sports", "racing"].includes(genreStr)) fam = "speed";
-
-    const splits = {
-      combat: { na: 0.52, jp: 0.06, pal: 0.30, other: 0.12 },
-      mind:   { na: 0.38, jp: 0.18, pal: 0.32, other: 0.12 },
-      story:  { na: 0.35, jp: 0.35, pal: 0.22, other: 0.08 },
-      speed:  { na: 0.45, jp: 0.05, pal: 0.32, other: 0.18 },
-      casual: { na: 0.42, jp: 0.12, pal: 0.32, other: 0.14 },
-    }[fam];
 
     return {
       title: row.title,
@@ -60,13 +48,13 @@ export async function loadMarketMemory() {
       genre: row.genre,
       publisher: row.publisher,
       developer: row.developer,
-      score: Number.isFinite(score) ? score : null,
-      sales: Number.isFinite(sales) ? sales : null,
-      na: sales != null ? sales * splits.na : 0,
-      jp: sales != null ? sales * splits.jp : 0,
-      pal: sales != null ? sales * splits.pal : 0,
-      other: sales != null ? sales * splits.other : 0,
-      year: year,
+      score: Number.isFinite(score) ? score : null, // ~10% present
+      sales: Number.isFinite(sales) ? sales : null, // ~30% present
+      na: +row.na_sales || 0,
+      jp: +row.jp_sales || 0,
+      pal: +row.pal_sales || 0,
+      other: +row.other_sales || 0,
+      year: date ? date.getFullYear() : null,
     };
   });
 

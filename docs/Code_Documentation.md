@@ -108,6 +108,8 @@ createCartridge({ mountEl, data, store, shell }) => {
 
 ## 5. D3 deep-dive: the three cartridges
 
+> **Encoding model (current).** The cartridges encode **all 20 genres** with their own hue (`genreColor()` in [palette.js](../src/ui/palette.js)), but the hues are organized into **5 genre groups** (combat / mind / story / speed / casual) so each group reads as a color *region* and the legend stays learnable. Under the **colorblind** toggle, the 20 hues collapse to the 5 group colors (Okabe–Ito). **Focus** is a *multi-select* list, `store.focusedGenres`, toggled a whole group at a time via `toggleFamily(...)`; all three cartridges read the same list, so a genre's color **and** its focus state are identical everywhere.
+
 ### 5.1 CONSOLE WARS — ridgeline  *([consoleWars.js](../src/cartridges/consoleWars.js))*
 **D3:** `scaleLinear`, `d3.area`, `curveBasis`, `axisBottom`, `.transition()` + `easeLinear`, `clipPath`.
 
@@ -119,7 +121,7 @@ const bands = gRow.append("g").attr("clip-path", `url(#${clipId})`);
 bands.selectAll("rect").data(row.series).join("rect")
   .attr("x", d => x(d.year) - bandW / 2)
   .attr("width", bandW).attr("height", maxAmp)
-  .attr("fill", d => d.domFamily ? familyColor(d.domFamily, cb) : NEUTRAL);
+  .attr("fill", d => d.domGenre ? genreColor(d.domGenre, cb) : NEUTRAL);  // per-genre hue
 
 // the area that defines the clip + the outline
 const gen = d3area()
@@ -136,39 +138,49 @@ sweep.transition().duration(PLAYHEAD_MS).ease(easeLinear)
      .attr("x1", x(yr)).attr("x2", x(yr));
 ```
 
-### 5.2 HIGH SCORE — linked stream + canvas scatter  *([highScore.js](../src/cartridges/highScore.js))*
-**D3:** `d3.stack` + `stackOffsetWiggle` + `curveBasis` (streamgraph), `scaleLog` (scatter x), `d3.brushX` (linking), `d3.quadtree` (hit-testing), `axisBottom`/`axisLeft`, `extent`.
+CONSOLE WARS also renders a **per-console genre breakdown** side panel where each genre row is individually clickable (`toggleGenreFocus`), giving finer, genre-level control than the group-level legend; it writes the same shared `focusedGenres` list.
 
-**Streamgraph** — a wiggle-offset stacked area of the 6 families:
+### 5.2 HIGH SCORE — linked stream + canvas scatter  *([highScore.js](../src/cartridges/highScore.js))*
+**D3:** `d3.stack` + `stackOffsetWiggle` + `curveBasis` (streamgraph), `scaleLog` (scatter x), `d3.brushX` (linking), `d3.quadtree` (hit-testing), **`d3.forceSimulation` + `forceX`/`forceY` + `timer`** (scatter animation), `axisBottom`/`axisLeft`, `extent`.
+
+**Streamgraph** — a wiggle-offset stacked area of **all 20 genres** (each its own hue, grouped into 5 color regions):
 
 ```js
-const series = d3stack().keys(FAMILIES).offset(stackOffsetWiggle)(perYear);
+const series = d3stack().keys(GENRES).offset(stackOffsetWiggle)(perYear);
 const areaGen = d3area()
   .x(d => xStream(d.data.year))
   .y0(d => yStream(d[0])).y1(d => yStream(d[1]))
   .curve(curveBasis);
 gStreamBands.selectAll("path").data(series, s => s.key)
-  .join(/* … */).transition().attr("d", areaGen);
+  .join(/* … */).attr("fill", s => genreColor(s.key, cb)).transition().attr("d", areaGen);
 ```
 
-**Scatter** is drawn on `<canvas>` (4k+ points), but D3 still owns the math — a **log** x-scale and a **quadtree** for fast nearest-point hover:
+**Scatter** is drawn on `<canvas>` (thousands of points), but D3 owns the math. A **log** x-scale + a **quadtree** for fast nearest-point hover, and a **force simulation** that *animates dots settling into their true position*:
 
 ```js
 xScatter = scaleLog().domain([Math.max(0.01, xdom[0]), xdom[1]])
                      .range([scL, cw - scR]).clamp(true);
-// after projecting points to (sx, sy):
-qt = d3quadtree().x(d => d.sx).y(d => d.sy).addAll(lit);
-const p = qt.find(mx, my, 10);   // hover → nearest within 10px
+qt = d3quadtree().x(d => d.sx).y(d => d.sy).addAll(lit);   // hover hit-test
+
+// dots glide to their exact (sales, score) spot — forceX/forceY target the
+// true (sx, sy); there is NO collision force, so resting positions stay
+// accurate (positional integrity preserved — it's an entry animation).
+simulation.nodes(active)
+  .force("x", forceX(d => d.sx).strength(0.12))
+  .force("y", forceY(d => d.sy).strength(0.12))
+  .alpha(1).restart();
+simulation.on("tick", renderCanvasFrame);  // redraw the canvas each tick
 ```
 
-**Linking** — a `d3.brushX` on the stream writes the shared `yearRange`, which fades the scatter:
+Non-focused dots are drawn **desaturated to grayscale** (focus the eye on the active genres), and a hovered genre **pulses** via a `d3.timer`.
+
+**Linking** — a `d3.brushX`-style year selection on the stream writes the shared `yearRange`, which fades the out-of-range scatter points:
 
 ```js
-brush = brushX().extent([[sL, streamT], [sw - sR, streamB]]).on("brush end", onBrush);
-// onBrush → store.set({ yearRange: [s, e] });  // every panel reacts
+// onStream{Down,Move,Up} → store.set({ yearRange: [s, e] });  // every panel reacts
 ```
 
-**Marquee selection** (our new interaction) is a custom drag rectangle that intersects the *currently-lit* points and repopulates the leaderboard — implemented directly so it can coexist with hover and the stream brush.
+**Marquee selection** — a custom drag rectangle over the scatter intersects the *currently-lit* points and repopulates the HIGH SCORES leaderboard (ranked by critic score); implemented directly so it coexists with hover and the stream selection.
 
 ### 5.3 GENRE WARP — radial stacked area  *([genreWarp.js](../src/cartridges/genreWarp.js))*
 **D3:** `d3.areaRadial` + `d3.stack`, `scaleSqrt` (radius), `scaleLinear` (angle), `d3.line`/`d3.area` (inset), `axisLeft`/`axisBottom`, `scale.invert` (hover).
@@ -178,7 +190,7 @@ Angle = year (one revolution); radius = stacked sales on a **sqrt** scale so *ar
 ```js
 const angle  = scaleLinear().domain([yearMin, yearMax]).range([0, TAU * 0.92]);
 const radius = scaleSqrt().range([innerR, outerR]);          // area-proportional
-const series = d3stack().keys(FAMILIES)(perYear);
+const series = d3stack().keys(GENRES)(perYear);              // 20 genre bands
 
 const areaGen = areaRadial()
   .angle(d => angle(d.data.year))
@@ -187,7 +199,7 @@ const areaGen = areaRadial()
   .curve(curveCardinal);
 ```
 
-Hover maps a cursor angle **back** to a year with `angle.invert(...)`, and clicking a band sets `focusedFamily`, which brightens it and draws a **linear `d3.line` inset** beside the disc — radial gestalt + linear precision together.
+Hover maps a cursor angle **back** to a year with `angle.invert(...)`, and clicking a band toggles that genre's group in `focusedGenres`, which brightens the focused bands and draws a **linear `d3.line` inset** beside the disc — radial gestalt + linear precision together.
 
 ---
 
@@ -195,8 +207,8 @@ Hover maps a cursor angle **back** to a year with `angle.invert(...)`, and click
 
 | Module | Role |
 |---|---|
-| [palette.js](../src/ui/palette.js) | the single source of truth mapping 20 genres → 6 families → colors (themed + colorblind). Canvas needs the hex literals, so they're mirrored from `theme.css`. |
-| [legend.js](../src/ui/legend.js) | the 6-family key **doubling as a click-to-filter control** (sets `focusedFamily` for all cartridges). |
+| [palette.js](../src/ui/palette.js) | the single source of truth for color: **20 per-genre hues** grouped into **5 families**; `genreColor()` for the full palette, `familyColor()` for the colorblind fallback. Also `GENRES`, `familyGenres()`, and `toggleFamily()` (group-level focus toggling). Canvas needs hex literals, so they mirror `theme.css`. |
+| [legend.js](../src/ui/legend.js) | the **5-group** key **doubling as a click-to-filter control** — clicking a group toggles all its genres in `store.focusedGenres` for every cartridge. |
 | [tooltip.js](../src/ui/tooltip.js) | one shared tooltip singleton (never per-cartridge). |
 | [regionToggle.js](../src/ui/regionToggle.js) | the arcade region buttons → `store.region`. |
 | [yearScrubber.js](../src/ui/yearScrubber.js) | the year slider; owns a single `requestAnimationFrame` playhead loop → `store.yearRange` + `store.playing`. |
@@ -208,7 +220,8 @@ Hover maps a cursor angle **back** to a year with `angle.invert(...)`, and click
 - **Pre-aggregate once** (§2.2); interactions read tiny tables, never the 64k array.
 - **Canvas for the dense scatter**, with a **quadtree** for O(log n) hover hit-testing.
 - **Transitions, not rebuilds** — D3 `enter/update/exit` joins + `.transition()`; the playhead uses one rAF loop.
-- **≤6 hues + focus-one-family** so color never works alone; a **colorblind-safe** palette toggle; arrow/number-key navigation; `prefers-reduced-motion` shortens or disables animation.
+- **20 hues organized into 5 groups + multi-select focus** so color never works alone; the **colorblind** toggle collapses the 20 hues to 5 Okabe–Ito group colors; arrow/number-key navigation; `prefers-reduced-motion` shortens or disables animation.
+- **Regional sales are the dataset's real columns** (`na/jp/pal/other_sales`) — the region toggle reflects genuine regional differences, not estimates.
 
 ---
 
@@ -223,6 +236,8 @@ Hover maps a cursor angle **back** to a year with `angle.invert(...)`, and click
 | `axisBottom`, `axisLeft` | all cartridges | axes |
 | `brushX` | highScore | year-range brushing (linking) |
 | `quadtree` | highScore | fast scatter hover hit-testing |
+| `forceSimulation` + `forceX`/`forceY` | highScore | animate scatter dots settling into their true position |
+| `timer` | highScore | hover pulse on the focused genre |
 | `selection.transition` + `easeLinear` | consoleWars, genreWarp, highScore | smooth updates + playhead |
 | `max`, `min`, `extent`, `sum` | cartridges | domains & rollups |
 | `pointer` | cartridges | cursor → data coordinates |

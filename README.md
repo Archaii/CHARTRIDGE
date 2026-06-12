@@ -1,4 +1,4 @@
-# CHARTRIDGE
+# :video_game: CHARTRIDGE
 
 ### _Insert a cartridge. Play the data._
 
